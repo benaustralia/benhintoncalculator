@@ -25,7 +25,7 @@ function App() {
       <footer className="py-6 text-center text-sm text-muted-foreground border-t mt-12">
         <p>TutorTerm 2026 Calculator &copy; 2026</p>
         <p className="text-xs mt-1 opacity-70">
-          Source: Victorian Government Schools Calendar • Build: {__COMMIT_HASH__}
+          Source: Victorian Government Schools Calendar • Build: {typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : 'dev'}
         </p>
         <button 
           onClick={() => setShowDemo(true)}
