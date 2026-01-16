@@ -27,7 +27,7 @@ export function Controls({
         <CardTitle>Settings</CardTitle>
         <CardDescription>Configure package details</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 md:space-y-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Client Type</label>
           <Tabs value={clientType} onValueChange={(v) => setClientType(v as "loyalty" | "new_client")} className="w-full">

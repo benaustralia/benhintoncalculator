@@ -24,17 +24,17 @@ export function Dashboard() {
   const price = getPrice();
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-8 animate-in fade-in duration-500">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+    <div className="container mx-auto p-4 md:p-6 max-w-4xl space-y-4 md:space-y-8 animate-in fade-in duration-500">
+      <header className="mb-4 md:mb-8 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           TutorTerm 2026 Calculator
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-2 text-sm md:text-base">
           Pricing & Logistics for Victoria, Australia
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-3">
         <Controls
           clientType={clientType} setClientType={setClientType}
           duration={duration} setDuration={setDuration}
@@ -42,8 +42,8 @@ export function Dashboard() {
           term={term} setTerm={setTerm}
         />
 
-        <div className="md:col-span-2 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className="md:col-span-2 space-y-4 md:space-y-6">
+          <div className="grid gap-4 md:gap-6 md:grid-cols-2">
             <PricingCard
               price={price}
               clientType={clientType}
