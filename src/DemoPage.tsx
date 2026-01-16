@@ -33,7 +33,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { RevealText } from "@/components/gsap/reveal-text";
 
-function App() {
+function DemoPage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="container mx-auto max-w-6xl space-y-12">
@@ -349,4 +349,4 @@ function App() {
   );
 }
 
-export default App;
+export default DemoPage;
