@@ -11,6 +11,7 @@ import { ModeToggle } from "./mode-toggle";
 
 export function Dashboard() {
   const [clientType, setClientType] = useState<"loyalty" | "new_client">("loyalty");
+  const [studentLevel, setStudentLevel] = useState<keyof typeof DATA.pricing_tiers>("junior_secondary");
   const [selectedTerms, setSelectedTerms] = useState<TermKey[]>(["term_1"]);
   const [termConfigs, setTermConfigs] = useState<TermConfigs>({
     term_1: { dayOfWeek: "Monday", duration: "1_hour" }
@@ -23,14 +24,16 @@ export function Dashboard() {
     if (selectedTerms.length === 0) return 0;
 
     let totalPrice = 0;
+    const tier = DATA.pricing_tiers[studentLevel];
+    const packages = clientType === "loyalty" ? tier.packages_loyalty : tier.packages_new;
 
     for (const term of selectedTerms) {
       const config = termConfigs[term];
       if (!config) continue;
 
-      // Get base price for 1 term
-      const basePrice = DATA.pricing[clientType]["1_term_10_weeks"];
-      const multiplier = DATA.pricing.multipliers[config.duration];
+      // Get base price for 1 term from the tier
+      const basePrice = packages["1_term"];
+      const multiplier = DATA.multipliers[config.duration];
       
       // Find term details to get actual lessons
       const termDetail = logistics.termDetails.find(td => td.term === term);
@@ -97,6 +100,8 @@ export function Dashboard() {
         <Controls
           clientType={clientType}
           setClientType={setClientType}
+          studentLevel={studentLevel}
+          setStudentLevel={setStudentLevel}
           selectedTerms={selectedTerms}
           setSelectedTerms={handleTermToggle}
           termConfigs={termConfigs}
@@ -121,6 +126,7 @@ export function Dashboard() {
           {selectedTerms.length > 0 && (
             <DescriptionTape
               clientType={clientType}
+              studentLevel={studentLevel}
               selectedTerms={selectedTerms}
               termDetails={logistics.termDetails}
               totalLessons={logistics.totalLessons}

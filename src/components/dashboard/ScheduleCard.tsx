@@ -16,7 +16,7 @@ export function ScheduleCard({ termDetails }: ScheduleCardProps) {
   };
 
   const durationLabels: Record<string, string> = {
-    "45_mins": "45 mins",
+    "45_min": "45 mins",
     "1_hour": "1 hour",
     "1.5_hours": "1.5 hours",
     "2_hours": "2 hours",

@@ -1,7 +1,7 @@
 import type { TermKey, DayOfWeek } from "@/hooks/useTermLogistics";
-import type { DATA } from "@/constants";
+import { DATA } from "@/constants";
 
-export type DurationKey = keyof typeof DATA.pricing.multipliers;
+export type DurationKey = keyof typeof DATA.multipliers;
 
 export interface TermConfig {
   dayOfWeek: DayOfWeek;

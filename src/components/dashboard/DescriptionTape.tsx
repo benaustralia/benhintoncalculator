@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Copy, Check } from "lucide-react";
 import type { TermKey, TermDetails } from "@/hooks/useTermLogistics";
 import { format, parseISO } from "date-fns";
+import { DATA } from "@/constants";
 
 interface DescriptionTapeProps {
   clientType: "loyalty" | "new_client";
+  studentLevel: keyof typeof DATA.pricing_tiers;
   selectedTerms: TermKey[];
   termDetails: TermDetails[];
   totalLessons: number;
@@ -17,6 +19,7 @@ interface DescriptionTapeProps {
 
 export function DescriptionTape({
   clientType,
+  studentLevel,
   selectedTerms,
   termDetails,
   totalLessons,
@@ -34,7 +37,7 @@ export function DescriptionTape({
   };
 
   const durationLabels: Record<string, string> = {
-    "45_mins": "45 mins",
+    "45_min": "45 mins",
     "1_hour": "1 hour",
     "1.5_hours": "1.5 hours",
     "2_hours": "2 hours",
@@ -43,6 +46,15 @@ export function DescriptionTape({
   // Build formatted description with line breaks
   const buildDescription = () => {
     const lines: string[] = [];
+
+    // Add student level at the top
+    const studentLevelLabel = DATA.pricing_tiers[studentLevel].label;
+    if (clientType === "loyalty") {
+      lines.push(`Loyalty Rate: ${studentLevelLabel}`);
+    } else {
+      lines.push(studentLevelLabel);
+    }
+    lines.push(""); // Add blank line after student level
 
     // Sort term details by term key to ensure consistent ordering
     const sortedTermDetails = [...termDetails].sort((a, b) => a.term.localeCompare(b.term));
