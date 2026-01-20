@@ -1,7 +1,8 @@
 import { DATA } from "@/constants";
 import { parseISO, eachDayOfInterval, getDay, format } from "date-fns";
+import type { TermConfigs } from "@/types/termConfig";
 
-export type TermKey = keyof typeof DATA.term_dates | "full_year";
+export type TermKey = keyof typeof DATA.term_dates;
 export type DayOfWeek = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 
 const DAY_MAP: Record<DayOfWeek, number> = {
@@ -14,33 +15,62 @@ const DAY_MAP: Record<DayOfWeek, number> = {
   "Saturday": 6,
 };
 
-interface LogisticsResult {
-  term: string;
+export interface TermDetails {
+  term: TermKey;
+  dayOfWeek: DayOfWeek;
+  duration: string;
+  lessons: number;
+  holidays: { date: string; name: string }[];
+  dates: string[];
+}
+
+export interface LogisticsResult {
+  terms: string[];
   totalLessons: number;
   holidays: { date: string; name: string }[];
   dates: string[];
   gap: number;
   packageExpectation: number;
+  termDetails: TermDetails[];
 }
 
-export function calculateTermLogistics(term: TermKey, dayOfWeek: DayOfWeek): LogisticsResult {
-  const targetDay = DAY_MAP[dayOfWeek];
-  const termsToProcess = term === "full_year"
-    ? (["term_1", "term_2", "term_3", "term_4"] as const)
-    : [term as keyof typeof DATA.term_dates];
+export function calculateTermLogistics(
+  selectedTerms: TermKey[],
+  termConfigs: TermConfigs
+): LogisticsResult {
+  if (selectedTerms.length === 0) {
+    return {
+      terms: [],
+      totalLessons: 0,
+      holidays: [],
+      dates: [],
+      gap: 0,
+      packageExpectation: 0,
+      termDetails: []
+    };
+  }
 
   let totalLessons = 0;
   const allHolidays: { date: string; name: string }[] = [];
   const allDates: string[] = [];
-  const packageExpectation = term === "full_year" ? 40 : 10;
+  const termDetails: TermDetails[] = [];
+  const packageExpectation = selectedTerms.length * 10; // 10 lessons per term
 
-  for (const t of termsToProcess) {
-    const termData = DATA.term_dates[t];
+  for (const term of selectedTerms) {
+    const config = termConfigs[term];
+    if (!config) continue; // Skip terms without configuration
+
+    const targetDay = DAY_MAP[config.dayOfWeek];
+    const termData = DATA.term_dates[term];
     const start = parseISO(termData.start);
     const end = parseISO(termData.end);
 
     const days = eachDayOfInterval({ start, end });
     const matchDays = days.filter(d => getDay(d) === targetDay);
+
+    const termDates: string[] = [];
+    const termHolidays: { date: string; name: string }[] = [];
+    let termLessons = 0;
 
     for (const d of matchDays) {
       const dStr = format(d, "yyyy-MM-dd");
@@ -49,22 +79,46 @@ export function calculateTermLogistics(term: TermKey, dayOfWeek: DayOfWeek): Log
       const holiday = DATA.public_holidays_excluded.find(h => h.date === dStr);
 
       if (holiday) {
+        termHolidays.push({ date: dStr, name: holiday.name });
         allHolidays.push({ date: dStr, name: holiday.name });
       } else {
-        totalLessons++;
+        termLessons++;
+        termDates.push(dStr);
         allDates.push(dStr);
       }
     }
+
+    totalLessons += termLessons;
+
+    termDetails.push({
+      term,
+      dayOfWeek: config.dayOfWeek,
+      duration: config.duration,
+      lessons: termLessons,
+      holidays: termHolidays,
+      dates: termDates
+    });
   }
+
+  // Sort dates chronologically
+  allDates.sort();
+  
+  // Sort holidays chronologically
+  allHolidays.sort((a, b) => a.date.localeCompare(b.date));
 
   const gap = totalLessons - packageExpectation;
 
+  const termLabels = selectedTerms.map(t => 
+    t.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())
+  );
+
   return {
-    term: term === "full_year" ? "Full Year" : term.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase()),
+    terms: termLabels,
     totalLessons,
     holidays: allHolidays,
     dates: allDates,
     gap,
-    packageExpectation
+    packageExpectation,
+    termDetails
   };
 }
