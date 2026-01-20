@@ -47,6 +47,7 @@ export const DATA = {
       "4_terms_40_weeks": 3600
     },
     "multipliers": {
+      "45_mins": 0.75,
       "1_hour": 1.0,
       "1.5_hours": 1.5,
       "2_hours": 2.0

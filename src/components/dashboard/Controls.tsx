@@ -30,6 +30,7 @@ const TERMS = [
 ];
 
 const DURATIONS: { value: DurationKey; label: string }[] = [
+  { value: "45_mins", label: "45 Mins" },
   { value: "1_hour", label: "1 Hour" },
   { value: "1.5_hours", label: "1.5 Hours" },
   { value: "2_hours", label: "2 Hours" },

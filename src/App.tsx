@@ -23,6 +23,9 @@ function App() {
     <div className="min-h-screen bg-background text-foreground">
       <Dashboard />
       <footer className="py-6 text-center text-sm text-muted-foreground border-t mt-12">
+        <p className="text-xs mb-4">
+          Build: {typeof __COMMIT_HASH__ !== 'undefined' ? __COMMIT_HASH__ : 'dev'}
+        </p>
         <button 
           onClick={() => setShowDemo(true)}
           className="px-3 py-1 text-xs border rounded hover:bg-accent transition-colors"

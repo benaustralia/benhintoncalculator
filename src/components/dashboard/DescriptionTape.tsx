@@ -34,6 +34,7 @@ export function DescriptionTape({
   };
 
   const durationLabels: Record<string, string> = {
+    "45_mins": "45 mins",
     "1_hour": "1 hour",
     "1.5_hours": "1.5 hours",
     "2_hours": "2 hours",
@@ -86,7 +87,7 @@ export function DescriptionTape({
 
   return (
     <Card>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start gap-3">
           <pre className="flex-1 text-sm font-mono bg-muted px-4 py-3 rounded-md border whitespace-pre-wrap break-words">
             {description}
