@@ -37,7 +37,7 @@ export function ScheduleCard({ termDetails }: ScheduleCardProps) {
             </AccordionTrigger>
             <AccordionContent className="pt-4">
               <div className="space-y-4">
-                {termDetails.map((term) => (
+                {[...termDetails].sort((a, b) => a.term.localeCompare(b.term)).map((term) => (
                   <div key={term.term} className="border rounded-md p-4 space-y-3">
                     <div className="text-sm font-medium">
                       {termLabels[term.term]} • {term.dayOfWeek}s • {durationLabels[term.duration]} • {term.lessons} lessons

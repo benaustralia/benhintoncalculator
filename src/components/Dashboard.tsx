@@ -11,7 +11,7 @@ import { ModeToggle } from "./mode-toggle";
 
 export function Dashboard() {
   const [clientType, setClientType] = useState<"loyalty" | "new_client">("loyalty");
-  const [studentLevel, setStudentLevel] = useState<keyof typeof DATA.pricing_tiers>("junior_secondary");
+  const [studentLevel, setStudentLevel] = useState<keyof typeof DATA.levels>("junior_secondary");
   const [selectedTerms, setSelectedTerms] = useState<TermKey[]>(["term_1"]);
   const [termConfigs, setTermConfigs] = useState<TermConfigs>({
     term_1: { dayOfWeek: "Monday", duration: "1_hour" }
@@ -19,35 +19,46 @@ export function Dashboard() {
 
   const logistics = calculateTermLogistics(selectedTerms, termConfigs);
 
-  // Calculate adjusted price: sum of prices for each term based on its config
+  // Calculate price using the 3-step process:
+  // 1. Base Cost = hourly rate × total sessions
+  // 2. Apply flat discount based on number of terms
+  // 3. Apply duration multiplier
   const getAdjustedPrice = () => {
     if (selectedTerms.length === 0) return 0;
 
-    let totalPrice = 0;
-    const tier = DATA.pricing_tiers[studentLevel];
-    const packages = clientType === "loyalty" ? tier.packages_loyalty : tier.packages_new;
+    const level = DATA.levels[studentLevel];
+    const hourlyRate = clientType === "loyalty" ? level.rates.loyalty : level.rates.new;
+    const numTerms = selectedTerms.length;
 
+    // Step 1: Calculate base cost per term with duration multiplier, then sum
+    let baseCost = 0;
     for (const term of selectedTerms) {
       const config = termConfigs[term];
       if (!config) continue;
 
-      // Get base price for 1 term from the tier
-      const basePrice = packages["1_term"];
-      const multiplier = DATA.multipliers[config.duration];
-      
-      // Find term details to get actual lessons
       const termDetail = logistics.termDetails.find(td => td.term === term);
       if (!termDetail) continue;
 
-      const termBaseTotal = basePrice * multiplier;
-      const pricePerLesson = termBaseTotal / 10; // 10 lessons expected per term
-      
-      // Adjust for actual lessons (if gap is negative, reduce price)
-      const termPrice = termBaseTotal + ((termDetail.lessons - 10) * pricePerLesson);
-      totalPrice += Math.round(termPrice);
+      // Base cost for this term = hourly rate × actual lessons × duration multiplier
+      const durationMultiplier = DATA.durations[config.duration];
+      const termBaseCost = hourlyRate * termDetail.lessons * durationMultiplier;
+      baseCost += termBaseCost;
     }
 
-    return totalPrice;
+    // Step 2: Apply flat discount based on number of terms
+    let discount = 0;
+    if (numTerms === 2) {
+      discount = DATA.terms["2"].discount; // $100
+    } else if (numTerms === 4) {
+      discount = DATA.terms["4"].discount; // $300
+    }
+    // For 1 term or 3 terms, discount is 0
+
+    const discountedCost = baseCost - discount;
+
+    // Step 3: Duration multiplier is already applied per-term in Step 1
+    // So we just return the discounted cost
+    return Math.round(Math.max(0, discountedCost));
   };
 
   const adjustedPrice = getAdjustedPrice();
@@ -75,13 +86,24 @@ export function Dashboard() {
   };
 
   // Update config for a specific term
-  const updateTermConfig = (term: TermKey, updates: Partial<{ dayOfWeek: DayOfWeek; duration: DurationKey }>) => {
+  const updateTermConfig = (term: TermKey, updates: Partial<{ dayOfWeek: DayOfWeek; duration: DurationKey; startDate?: string; endDate?: string }>) => {
+    const currentConfig = termConfigs[term];
+    if (!currentConfig) return;
+    
+    // Create new config, removing properties set to undefined
+    const newConfig: typeof currentConfig = { ...currentConfig };
+    Object.keys(updates).forEach(key => {
+      const typedKey = key as keyof typeof updates;
+      if (updates[typedKey] === undefined) {
+        delete (newConfig as any)[typedKey];
+      } else {
+        (newConfig as any)[typedKey] = updates[typedKey];
+      }
+    });
+    
     setTermConfigs({
       ...termConfigs,
-      [term]: {
-        ...termConfigs[term]!,
-        ...updates
-      }
+      [term]: newConfig
     });
   };
 

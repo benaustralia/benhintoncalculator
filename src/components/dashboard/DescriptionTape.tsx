@@ -8,7 +8,7 @@ import { DATA } from "@/constants";
 
 interface DescriptionTapeProps {
   clientType: "loyalty" | "new_client";
-  studentLevel: keyof typeof DATA.pricing_tiers;
+  studentLevel: keyof typeof DATA.levels;
   selectedTerms: TermKey[];
   termDetails: TermDetails[];
   totalLessons: number;
@@ -48,7 +48,7 @@ export function DescriptionTape({
     const lines: string[] = [];
 
     // Add student level at the top
-    const studentLevelLabel = DATA.pricing_tiers[studentLevel].label;
+    const studentLevelLabel = DATA.levels[studentLevel].label;
     if (clientType === "loyalty") {
       lines.push(`Loyalty Rate: ${studentLevelLabel}`);
     } else {

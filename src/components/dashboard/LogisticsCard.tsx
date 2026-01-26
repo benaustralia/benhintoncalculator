@@ -22,7 +22,7 @@ export function LogisticsCard({ selectedTerms, termDetails }: LogisticsCardProps
         <CardTitle># Lessons</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {termDetails.map((term) => (
+        {[...termDetails].sort((a, b) => a.term.localeCompare(b.term)).map((term) => (
           <div key={term.term} className="flex justify-between items-center">
             <span className={termDetails.length === 1 ? "text-sm font-medium" : "text-sm text-muted-foreground"}>
               {termLabels[term.term]}:

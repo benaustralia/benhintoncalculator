@@ -62,10 +62,14 @@ export function calculateTermLogistics(
 
     const targetDay = DAY_MAP[config.dayOfWeek];
     const termData = DATA.term_dates[term];
-    const start = parseISO(termData.start);
-    const end = parseISO(termData.end);
+    const termStart = parseISO(termData.start);
+    const termEnd = parseISO(termData.end);
+    
+    // Use custom dates if provided, otherwise use term dates
+    const start = config.startDate ? parseISO(config.startDate) : termStart;
+    const end = config.endDate ? parseISO(config.endDate) : termEnd;
 
-    const days = eachDayOfInterval({ start, end });
+    const days = eachDayOfInterval({ start: termStart, end: termEnd });
     const matchDays = days.filter(d => getDay(d) === targetDay);
 
     const termDates: string[] = [];
@@ -82,9 +86,16 @@ export function calculateTermLogistics(
         termHolidays.push({ date: dStr, name: holiday.name });
         allHolidays.push({ date: dStr, name: holiday.name });
       } else {
-        termLessons++;
-        termDates.push(dStr);
-        allDates.push(dStr);
+        // Only include lessons within the date range (if custom dates are set)
+        const shouldInclude = 
+          (!config.startDate || d >= start) &&
+          (!config.endDate || d <= end);
+        
+        if (shouldInclude) {
+          termLessons++;
+          termDates.push(dStr);
+          allDates.push(dStr);
+        }
       }
     }
 
