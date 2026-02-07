@@ -59,6 +59,7 @@ export function TermCalculator() {
     const sub = Math.round(cost), total = Math.max(0, sub - disc - credit);
     const tape = [
       `${lv.l}${loyal ? " LOYALTY" : ""}`, "", ...lines, "",
+      "---",
       `SUBTOTAL $${sub.toLocaleString()}`,
       disc > 0 ? `${discLabel} -$${disc.toLocaleString()}` : null,
       credit > 0 ? `CREDIT -$${credit.toLocaleString()}` : null,
