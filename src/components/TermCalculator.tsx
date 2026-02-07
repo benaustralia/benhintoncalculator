@@ -6,7 +6,7 @@ const CFG = {
   terms: { term_1: { s: "2026-01-28", e: "2026-04-02" }, term_2: { s: "2026-04-20", e: "2026-06-26" }, term_3: { s: "2026-07-13", e: "2026-09-18" }, term_4: { s: "2026-10-05", e: "2026-12-18" } },
   holidays: [{ n: "Labour Day", d: "2026-03-09" }, { n: "Anzac Day", d: "2026-04-25" }, { n: "King's Birthday", d: "2026-06-08" }, { n: "Melbourne Cup Day", d: "2026-11-03" }],
   levels: { prep_6: { l: "PREP-6", r: [75, 85] }, grade_7_10: { l: "GRADE 7-10", r: [82, 98] }, vce: { l: "VCE", r: [95, 120] }, adult: { l: "ADULT", r: [110, 140] } },
-  discounts: [0, 100, 0, 300],
+  discounts: [0, 100, 200, 300],
   durations: { "45m": 0.75, "1h": 1, "1.5h": 1.5, "2h": 2 }
 };
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -29,7 +29,7 @@ export function TermCalculator() {
   const calc = useMemo(() => {
     if (!terms.length) return { tape: "", total: 0 };
     const lv = CFG.levels[level], rate = lv.r[loyal ? 0 : 1], disc = CFG.discounts[terms.length - 1] || 0;
-    const discLabel = terms.length === 4 ? "ANNUAL DISCOUNT" : terms.length === 2 ? "MULTI-TERM DISCOUNT" : "";
+    const discLabel = terms.length === 4 ? "ANNUAL DISCOUNT" : terms.length >= 2 ? "MULTI-TERM DISCOUNT" : "";
 
     let cost = 0;
     const lines = terms.sort().map((t, i) => {
