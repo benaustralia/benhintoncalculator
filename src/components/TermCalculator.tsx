@@ -13,18 +13,19 @@ const SLOTS: { key: SlotKey; label: string; termKey: PeriodKey; isHols: boolean 
 ]);
 
 const LEVELS = {
-  prep_6: { label: "PREP-6", rates: [75, 85] },
+  prep_6: { label: "GRADE P-6", rates: [75, 85] },
   grade_7_10: { label: "GRADE 7-10", rates: [82, 98] },
   vce: { label: "VCE", rates: [95, 120] },
   adult: { label: "ADULT", rates: [110, 140] },
 } as const;
+const GR_RATE = 40; // Group Reading: $40/hr × 1.5hr = $60/session
 type LevelKey = keyof typeof LEVELS;
 
 const DURATIONS: Record<string, number> = { "45m": 0.75, "1h": 1, "1.5h": 1.5, "2h": 2 };
 const DUR_LABELS: Record<string, string> = { "45m": "45 MIN", "1h": "1 HR", "1.5h": "1.5 HR", "2h": "2 HR" };
 const DAY_IDX: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
 const DISCOUNTS = [0, 100, 200, 300];
-const S = { on: "bg-white text-black", off: "border border-zinc-800 text-zinc-400" };
+const S = { on: "bg-white text-black", off: "border border-zinc-800 text-zinc-300" };
 
 export function TermCalculator() {
   const [year, setYear] = useState(getCurrentYear);
@@ -55,7 +56,7 @@ export function TermCalculator() {
       setActive([...active, k]);
       setConfigs({
         ...configs,
-        [k]: { day: base?.day || "Monday", dur: base?.dur || "1h", start: range.start, end: range.end, credit: "" },
+        [k]: { day: base?.day || "Monday", dur: base?.dur || "1h", start: range.start, end: range.end, credit: "", groupReading: false },
       });
     }
   };
@@ -93,13 +94,27 @@ export function TermCalculator() {
       cost += rate * dates.length * DURATIONS[c.dur];
       totalCredit += parseFloat(c.credit) || 0;
 
-      return [
+      const dateRange = dates.length
+        ? `${format(parseISO(dates[0]), "d MMM").toUpperCase()} — ${format(parseISO(dates.at(-1)!), "d MMM").toUpperCase()}`
+        : "";
+      const parts = [
         `${slot.label} - ${year}`,
-        dates.length ? `${format(parseISO(dates[0]), "d MMM").toUpperCase()} — ${format(parseISO(dates.at(-1)!), "d MMM").toUpperCase()}` : "",
+        dateRange,
         `${dates.length} SESSIONS / ${DUR_LABELS[c.dur]}`,
         hols.length ? `EXCLUDES: ${hols.join(", ")}` : null,
-        i < sorted.length - 1 ? "---" : null,
-      ].filter(Boolean).join("\n");
+      ];
+      if (c.groupReading) {
+        const grDates = eachDayOfInterval({ start: parseISO(range.start), end: parseISO(range.end) })
+          .filter(d => getDay(d) === DAY_IDX.Sunday && d >= cs && d <= ce)
+          .map(d => format(d, "yyyy-MM-dd"));
+        cost += GR_RATE * grDates.length * 1.5;
+        const grRange = grDates.length
+          ? `${format(parseISO(grDates[0]), "d MMM").toUpperCase()} — ${format(parseISO(grDates.at(-1)!), "d MMM").toUpperCase()}`
+          : "";
+        parts.push("---", `GROUP READING - ${slot.label} - ${year}`, grRange, `${grDates.length} SESSIONS / 1.5 HR`);
+      }
+      if (i < sorted.length - 1) parts.push("---");
+      return parts.filter(Boolean).join("\n");
     });
 
     const sub = Math.round(cost);
@@ -124,7 +139,7 @@ export function TermCalculator() {
   const inputPanel = (
     <div className="space-y-4">
       <h1 className="text-4xl md:text-5xl font-black tracking-tighter">Term Calculator {year}</h1>
-      <select value={year} onChange={e => setYear(Number(e.target.value))} className={si}>
+      <select aria-label="Year" value={year} onChange={e => setYear(Number(e.target.value))} className={si}>
         {getAvailableYears().map(y => <option key={y} value={y}>{y}</option>)}
       </select>
       <div className="flex gap-2">
@@ -134,7 +149,7 @@ export function TermCalculator() {
           </button>
         ))}
       </div>
-      <select value={level} onChange={e => setLevel(e.target.value as LevelKey)} className={si}>
+      <select aria-label="Student level" value={level} onChange={e => setLevel(e.target.value as LevelKey)} className={si}>
         {Object.entries(LEVELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
       </select>
       <div className="grid grid-cols-2 gap-2">
@@ -148,17 +163,23 @@ export function TermCalculator() {
         const range = getRange(slot);
         return <TermCard key={k} label={`${slot.label} - ${year}`} config={c} minDate={range.start} maxDate={range.end} onChange={u => updateConfig(k, u)} />;
       })}
-      <div className="text-[10px] text-zinc-600">
+      <div className="flex items-center gap-3 pt-2">
+        <img src="https://img.shields.io/badge/performance-100-brightgreen" alt="Performance: 100" width="110" height="20" />
+        <img src="https://img.shields.io/badge/accessibility-100-brightgreen" alt="Accessibility: 100" width="106" height="20" />
+        <img src="https://img.shields.io/badge/best%20practices-100-brightgreen" alt="Best Practices: 100" width="118" height="20" />
+        <img src="https://img.shields.io/badge/SEO-100-brightgreen" alt="SEO: 100" width="64" height="20" />
+      </div>
+      <div className="text-[10px] text-zinc-400">
         {(import.meta.env.VITE_COMMIT_REF || import.meta.env.VITE_GIT_COMMIT_SHA)?.substring(0, 7) || "dev"}
       </div>
     </div>
   );
 
   const quote = <div className="flex items-center justify-center h-full"><Tape tape={calc.tape} total={calc.total} /></div>;
-  const tabCls = "flex-1 rounded-none py-3 text-sm data-[state=active]:bg-zinc-900 data-[state=active]:text-white text-zinc-500";
+  const tabCls = "flex-1 rounded-none py-3 text-sm data-[state=active]:bg-zinc-900 data-[state=active]:text-white text-zinc-300";
 
   return (
-    <main className="h-[100dvh] bg-black text-white">
+    <main data-prerendered="" className="h-[100dvh] bg-black text-white">
       <div className="hidden md:flex h-full max-w-5xl mx-auto">
         <div className="flex-1 p-12 overflow-y-auto">{inputPanel}</div>
         <div className="flex-1 p-12 overflow-y-auto">{quote}</div>

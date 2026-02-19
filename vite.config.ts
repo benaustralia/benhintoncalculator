@@ -23,4 +23,8 @@ export default defineConfig({
     "import.meta.env.VITE_COMMIT_REF": JSON.stringify(process.env.COMMIT_REF),
     "import.meta.env.VITE_GIT_COMMIT_SHA": JSON.stringify(getGitHash()),
   },
+  build: {
+    cssCodeSplit: false,
+    modulePreload: { polyfill: false },
+  },
 });
