@@ -34,7 +34,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, placeholder = "P
           {date ? format(date, "d MMM yyyy") : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-zinc-950 border-zinc-800" align="start">
+      <PopoverContent className="p-0 bg-zinc-950 border-zinc-800" align="start">
         <Suspense fallback={<div className="p-4 text-sm text-zinc-400">Loading...</div>}>
           <Calendar
             mode="single"

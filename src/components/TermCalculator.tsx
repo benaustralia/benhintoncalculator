@@ -56,7 +56,7 @@ export function TermCalculator() {
       setActive([...active, k]);
       setConfigs({
         ...configs,
-        [k]: { day: base?.day || "Monday", dur: base?.dur || "1h", start: range.start, end: range.end, credit: "", groupReading: false },
+        [k]: { day: base?.day || "Monday", dur: base?.dur || "1h", start: range.start, end: range.end, credit: "", debit: "", groupReading: false },
       });
     }
   };
@@ -71,6 +71,7 @@ export function TermCalculator() {
 
     let cost = 0;
     let totalCredit = 0;
+    let totalDebit = 0;
     const sorted = [...active].sort();
 
     const lines = sorted.map((k, i) => {
@@ -93,6 +94,7 @@ export function TermCalculator() {
 
       cost += rate * dates.length * DURATIONS[c.dur];
       totalCredit += parseFloat(c.credit) || 0;
+      totalDebit += parseFloat(c.debit) || 0;
 
       const dateRange = dates.length
         ? `${format(parseISO(dates[0]), "d MMM").toUpperCase()} — ${format(parseISO(dates.at(-1)!), "d MMM").toUpperCase()}`
@@ -118,13 +120,16 @@ export function TermCalculator() {
     });
 
     const sub = Math.round(cost);
-    const total = Math.max(0, sub - disc - totalCredit);
+    const total = Math.max(0, sub - disc - totalCredit + totalDebit);
+    const days = [...new Set(sorted.map(k => configs[k]?.day).filter(Boolean))];
+    const daysLine = days.map(d => `${d!.toUpperCase()}S`).join(" & ");
     const tape = [
-      `${lv.label}${loyal ? " LOYALTY" : ""}`, "---", ...lines, "",
+      `${lv.label}${loyal ? " LOYALTY" : ""}`, daysLine, "---", ...lines, "",
       "---",
       `SUBTOTAL $${sub.toLocaleString()}`,
       disc > 0 ? `${discLabel} -$${disc.toLocaleString()}` : null,
       totalCredit > 0 ? `CREDIT -$${totalCredit.toLocaleString()}` : null,
+      totalDebit > 0 ? `DEBIT +$${totalDebit.toLocaleString()}` : null,
       `PAYABLE $${total.toLocaleString()}`,
     ].filter(Boolean).join("\n");
     return { tape, total };
@@ -163,7 +168,7 @@ export function TermCalculator() {
         const range = getRange(slot);
         return <TermCard key={k} label={`${slot.label} - ${year}`} config={c} minDate={range.start} maxDate={range.end} onChange={u => updateConfig(k, u)} />;
       })}
-      <div className="flex items-center gap-3 pt-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">
         <img src="https://img.shields.io/badge/performance-100-brightgreen" alt="Performance: 100" width="110" height="20" />
         <img src="https://img.shields.io/badge/accessibility-100-brightgreen" alt="Accessibility: 100" width="106" height="20" />
         <img src="https://img.shields.io/badge/best%20practices-100-brightgreen" alt="Best Practices: 100" width="118" height="20" />

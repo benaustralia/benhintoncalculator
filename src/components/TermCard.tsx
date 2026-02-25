@@ -6,7 +6,7 @@ const DUR_LABELS: Record<string, string> = { "45m": "45 MIN", "1h": "1 HR", "1.5
 const S = "w-full px-3 py-2 bg-black border border-zinc-800 text-white text-sm";
 
 export type CardConfig = {
-  day: string; dur: string; start: string; end: string; credit: string; groupReading: boolean;
+  day: string; dur: string; start: string; end: string; credit: string; debit: string; groupReading: boolean;
 };
 
 type Props = {
@@ -47,6 +47,13 @@ export function TermCard({ label, config, minDate, maxDate, onChange }: Props) {
         onChange={e => onChange({ credit: e.target.value })}
         placeholder="CREDIT ($)"
         aria-label="Credit amount"
+        className="bg-black border-zinc-800 text-white placeholder:text-zinc-400"
+      />
+      <Input
+        value={config.debit}
+        onChange={e => onChange({ debit: e.target.value })}
+        placeholder="DEBIT ($)"
+        aria-label="Debit amount"
         className="bg-black border-zinc-800 text-white placeholder:text-zinc-400"
       />
     </div>
