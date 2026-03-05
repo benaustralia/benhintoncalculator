@@ -52,7 +52,7 @@ const ZH_WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五",
 const ZH_NUM: Record<number, string> = { 1: "一", 2: "二", 3: "三", 4: "四" };
 
 export const EN: Translations = {
-  heading: "Term Calculator",
+  heading: "Fee Calculator",
   loyalty: "LOYALTY",
   newClient: "NEW CLIENT",
   levels: { prep_6: "GRADE P-6", grade_7_10: "GRADE 7-10", vce: "VCE", adult: "ADULT" },

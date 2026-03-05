@@ -44,7 +44,7 @@ export function InputPanel({ lang, setLang, year, setYear, loyal, setLoyal, leve
   return (
     <div className="space-y-4">
       <div className="flex items-baseline justify-between">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter">{tr.heading} {year}</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tighter">{tr.heading}</h1>
         <div className="flex gap-1 ml-4 shrink-0">
           {(["en", "zh"] as Lang[]).map(l => (
             <button key={l} onClick={() => setLang(l)} className={`px-2 py-1 text-xs font-medium ${lang === l ? S.on : S.off}`}>
