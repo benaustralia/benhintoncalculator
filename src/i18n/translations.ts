@@ -49,6 +49,7 @@ const ZH_DAY_EACH: Record<string, string> = {
   Friday: "每周五", Saturday: "每周六", Sunday: "每周日",
 };
 const ZH_WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const ZH_NUM: Record<number, string> = { 1: "一", 2: "二", 3: "三", 4: "四" };
 
 export const EN: Translations = {
   heading: "Term Calculator",
@@ -93,7 +94,7 @@ export const EN: Translations = {
 };
 
 export const ZH: Translations = {
-  heading: "学期计算器",
+  heading: "学费计算器",
   loyalty: "老客户",
   newClient: "新客户",
   levels: { prep_6: "P-6年级", grade_7_10: "7-10年级", vce: "VCE", adult: "成人" },
@@ -106,13 +107,18 @@ export const ZH: Translations = {
   durLabels: { "45m": "45分钟", "1h": "1小时", "1.5h": "1.5小时", "2h": "2小时" },
   startPlaceholder: "开始日期",
   endPlaceholder: "结束日期",
-  slotLabel: (n, isHols, isGR) =>
-    isGR ? (isHols ? `第${n}学期假期 阅读` : `第${n}学期 阅读`) : (isHols ? `第${n}学期假期 课程` : `第${n}学期 课程`),
+  slotLabel: (n, isHols, isGR) => {
+    const ord = ZH_NUM[n] ?? n;
+    return isGR
+      ? (isHols ? `第${ord}学期假期 阅读班` : `第${ord}学期 阅读班`)
+      : (isHols ? `第${ord}学期假期 课程班` : `第${ord}学期 课程班`);
+  },
   cardLabel: (n, isHols, isGR, year) => {
-    const tl = isHols ? `第${n}学期假期` : `第${n}学期`;
+    const ord = ZH_NUM[Number(n)] ?? n;
+    const tl = isHols ? `第${ord}学期假期` : `第${ord}学期`;
     return isGR ? `小组阅读 - ${tl} - ${year}` : `${tl} - ${year}`;
   },
-  tapeTerm: (n, isHols) => isHols ? `第${n}学期假期` : `第${n}学期`,
+  tapeTerm: (n, isHols) => { const ord = ZH_NUM[Number(n)] ?? n; return isHols ? `第${ord}学期假期` : `第${ord}学期`; },
   tapeGRLabel: (tl, year) => `小组阅读 - ${tl} - ${year}`,
   tapeClassLabel: (tl, year) => `${tl} - ${year}`,
   sessions: (n, dur) => `${n}节课 / ${dur}`,
