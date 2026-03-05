@@ -1,16 +1,17 @@
-import { readFileSync, writeFileSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, rmSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(__dirname, "../dist");
+const ssrDir = resolve(__dirname, "../dist-ssr");
 const htmlPath = resolve(dist, "index.html");
-const ssrBundle = resolve(dist, "entry-server.js");
+const ssrBundle = resolve(ssrDir, "entry-server.js");
 
 const { render } = await import(ssrBundle);
 const rootHtml = render();
 
-unlinkSync(ssrBundle);
+rmSync(ssrDir, { recursive: true, force: true });
 
 let html = readFileSync(htmlPath, "utf8");
 const start = '<div id="root">';
