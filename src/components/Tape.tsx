@@ -13,9 +13,7 @@ export function Tape({ tape, total }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!tape.length) {
-    return <div aria-hidden="true" className="text-6xl md:text-8xl font-black text-zinc-900 select-none">$0</div>;
-  }
+  if (!tape.length) return null;
 
   return (
     <div className="space-y-6 w-full max-w-md">
