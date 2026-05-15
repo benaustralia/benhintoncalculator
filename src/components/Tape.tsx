@@ -14,7 +14,7 @@ export function Tape({ tape, total }: Props) {
   };
 
   if (!tape.length) {
-    return <div className="text-6xl md:text-8xl font-black text-zinc-900 select-none">$0</div>;
+    return <div aria-hidden="true" className="text-6xl md:text-8xl font-black text-zinc-900 select-none">$0</div>;
   }
 
   return (
