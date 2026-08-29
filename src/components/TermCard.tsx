@@ -10,6 +10,7 @@ export type CardConfig = {
 };
 
 type Props = {
+  idPrefix: string;
   label: string;
   config: CardConfig;
   minDate: string;
@@ -22,8 +23,11 @@ type Props = {
   lang: Lang;
 };
 
-export function TermCard({ label, config, minDate, maxDate, onChange, isGR, isHols, allHolDates, publicHolidays, lang }: Props) {
+export function TermCard({ idPrefix, label, config, minDate, maxDate, onChange, isGR, isHols, allHolDates, publicHolidays, lang }: Props) {
   const tr = TRANSLATIONS[lang];
+  const lbl = "block text-[11px] font-medium uppercase tracking-wide text-zinc-500 mb-1";
+  const dayId = `${idPrefix}-day`;
+  const durId = `${idPrefix}-dur`;
 
   const toggleDate = (d: string) => {
     const sel = config.selectedDates;
@@ -36,9 +40,12 @@ export function TermCard({ label, config, minDate, maxDate, onChange, isGR, isHo
       {isHols ? (
         <>
           {!isGR && (
-            <select aria-label="Duration" value={config.dur} onChange={e => onChange({ dur: e.target.value })} className={S}>
-              {Object.entries(tr.durLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
+            <div>
+              <label htmlFor={durId} className={lbl}>{tr.labels.duration}</label>
+              <select id={durId} name="duration" value={config.dur} onChange={e => onChange({ dur: e.target.value })} className={S}>
+                {Object.entries(tr.durLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
           )}
           <div className="flex flex-wrap gap-1">
             {(allHolDates || []).map(d => {
@@ -63,12 +70,18 @@ export function TermCard({ label, config, minDate, maxDate, onChange, isGR, isHo
         <>
           {!isGR && (
             <>
-              <select aria-label="Day of week" value={config.day} onChange={e => onChange({ day: e.target.value })} className={S}>
-                {tr.days.map(d => <option key={d} value={d}>{tr.dayDisplay(d)}</option>)}
-              </select>
-              <select aria-label="Duration" value={config.dur} onChange={e => onChange({ dur: e.target.value })} className={S}>
-                {Object.entries(tr.durLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
+              <div>
+                <label htmlFor={dayId} className={lbl}>{tr.labels.day}</label>
+                <select id={dayId} name="day" value={config.day} onChange={e => onChange({ day: e.target.value })} className={S}>
+                  {tr.days.map(d => <option key={d} value={d}>{tr.dayDisplay(d)}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor={durId} className={lbl}>{tr.labels.duration}</label>
+                <select id={durId} name="duration" value={config.dur} onChange={e => onChange({ dur: e.target.value })} className={S}>
+                  {Object.entries(tr.durLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
             </>
           )}
           <div className="flex gap-2">

@@ -40,6 +40,14 @@ export type Translations = {
   copyQuote: string;
   copied: string;
   pageTitle: string;
+  labels: {
+    year: string;
+    level: string;
+    day: string;
+    duration: string;
+    credit: string;
+    debit: string;
+  };
 };
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -97,6 +105,7 @@ export const EN: Translations = {
   copyQuote: "Copy quote",
   copied: "Copied",
   pageTitle: "TutorTerm Calculator",
+  labels: { year: "Year", level: "Student level", day: "Day", duration: "Duration", credit: "Credit", debit: "Debit" },
 };
 
 export const ZH: Translations = {
@@ -150,6 +159,7 @@ export const ZH: Translations = {
   copyQuote: "复制报价",
   copied: "已复制",
   pageTitle: "学费计算器",
+  labels: { year: "年份", level: "阶段", day: "星期", duration: "时长", credit: "抵扣金额", debit: "额外费用" },
 };
 
 export const TRANSLATIONS: Record<Lang, Translations> = { en: EN, zh: ZH };

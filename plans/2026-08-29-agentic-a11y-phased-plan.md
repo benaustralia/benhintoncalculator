@@ -157,11 +157,22 @@ in `TermCalculator.tsx` remain, untouched).
 *Model: Sonnet, medium effort — small mechanical edits, but the zh label translations should be
 checked by Ben (linguist) rather than trusted blind.*
 
-- [ ] i18n: add `tr.labels` (`year`, `level`, `day`, `duration`, `credit`, `debit`, en + zh).
-- [ ] Small zinc-500 uppercase `<label for>` above each select/input; `id` + `name` on controls;
+- [x] i18n: add `tr.labels` (`year`, `level`, `day`, `duration`, `credit`, `debit`, en + zh).
+- [x] Small zinc-500 uppercase `<label for>` above each select/input; `id` + `name` on controls;
       drop the now-redundant `aria-label`s.
-- [ ] Wrap the input side in `<form onSubmit={e => e.preventDefault()}>` (safe because Phase 1
+- [x] Wrap the input side in `<form onSubmit={e => e.preventDefault()}>` (safe because Phase 1
       set `type="button"` everywhere).
+
+**Done 2026-08-29.** Year/Student level selects and Credit/Debit inputs labelled in `InputPanel.tsx`;
+per-slot Day/Duration selects in `TermCard.tsx` labelled with ids scoped by `idPrefix={slotKey}` so
+multiple active term cards don't collide on `id`. `zh` label for STUDENT LEVEL was reviewed and
+changed from 年级 (literally "grade") to 阶段 ("stage/level") since the select also covers VCE and
+ADULT, not just grade levels — Ben's call. `npx tsc --noEmit` and `npm run build` (incl. SSR
+prerender) both clean; the two pre-existing `TermCard.tsx` eslint unused-import errors are unrelated
+to this diff (confirmed present on a stash of this phase's changes). Verified in Chrome against the
+`vite preview` build: toggling T1 CLASS reveals the term card with visible DAY / DURATION labels
+above their selects, YEAR / STUDENT LEVEL / CREDIT / DEBIT labels render on load, and the quote
+still calculates ($656 for T1 CLASS Mondays 1hr).
 
 ## Phase 5 — URL state
 
