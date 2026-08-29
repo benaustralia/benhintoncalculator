@@ -33,7 +33,7 @@ export function InputPanel({ lang, setLang, year, setYear, loyal, setLoyal, leve
   const si = "w-full px-3 py-2 bg-black border border-zinc-800 text-white text-sm";
   const focusRing = "focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2";
   const btn = (on: boolean) => `flex-1 px-3 py-2 text-sm font-medium ${on ? S.on : S.off} ${focusRing}`;
-  const lbl = "block text-[11px] font-medium uppercase tracking-wide text-zinc-500 mb-1";
+  const lbl = "block text-[11px] font-medium uppercase tracking-wide text-zinc-400 mb-1";
   const phDates = data.publicHolidays.map(h => h.date);
 
   const getRange = (slot: Slot) => {

@@ -25,7 +25,7 @@ type Props = {
 
 export function TermCard({ idPrefix, label, config, minDate, maxDate, onChange, isGR, isHols, allHolDates, publicHolidays, lang }: Props) {
   const tr = TRANSLATIONS[lang];
-  const lbl = "block text-[11px] font-medium uppercase tracking-wide text-zinc-500 mb-1";
+  const lbl = "block text-[11px] font-medium uppercase tracking-wide text-zinc-400 mb-1";
   const dayId = `${idPrefix}-day`;
   const durId = `${idPrefix}-dur`;
 
