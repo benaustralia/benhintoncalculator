@@ -290,7 +290,7 @@ Self-consistency check in Chrome: took `window.tutorterm.help().example` — the
 the docs — and ran it with `eval()` against the live page with zero modification; it executed without
 error and produced a correct real tape (`VCE LOYALTY … SUBTOTAL $760 … PAYABLE $760`), so the
 documentation isn't just plausible-looking text, it's demonstrably accurate against the shipped API.
-Pushed to `main`.
+Pushed to `main` (`3e8b9c1`).
 
 ## Phase 7 — Verification & regression lock
 
