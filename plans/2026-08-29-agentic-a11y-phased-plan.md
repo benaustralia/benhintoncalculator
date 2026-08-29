@@ -78,14 +78,31 @@ whoever owns general lint cleanup, not in scope here.
 overrides, and keeping the SSR-prerender/hydration pipeline clean. Wrong choices here are subtle
 (hydration mismatch, focus traps), not loud.*
 
-- [ ] Collapse `TermCalculator` to **one** Tabs instance: `forceMount` both `TabsContent`; at `md:`
+- [x] Collapse `TermCalculator` to **one** Tabs instance: `forceMount` both `TabsContent`; at `md:`
       hide `TabsList` and lay both panels side-by-side (override Radix `data-[state=inactive]`
       hiding via CSS); below `md`, current tab behaviour unchanged.
-- [ ] Verify prerender + hydration still clean (`npm run build`, check `dist/index.html`, no
+- [x] Verify prerender + hydration still clean (`npm run build`, check `dist/index.html`, no
       hydration warnings in console).
-- [ ] Fallback if Radix fights the CSS: keep both layouts but `inert` the inactive one via a
-      `matchMedia` listener (applied post-hydration only).
+- [x] Fallback (not needed): CSS-only approach worked — `max-md:data-[state=inactive]:hidden`
+      compiles to `@media not all and (min-width:48rem){...}`, cleanly scoped below `md` with no
+      specificity fight against the `md:*` desktop rules. `inert`/`matchMedia` fallback not required.
 - Result: one H1, one set of controls, one live region.
+
+**Extra fix beyond the checklist:** with `forceMount`, both `TabsContent`s permanently carry
+`role="tabpanel"` + `aria-labelledby={triggerId}` from Radix — fine at mobile (a real tablist
+governs them) but wrong at desktop, where the tablist is `md:hidden` and inert, leaving a
+"tabpanel" with no operable tab behind it. Added `useIsDesktop()` (a `matchMedia` listener applied
+**post-hydration only**, defaulting to `false` so SSR/first-hydration output matches — no mismatch)
+that swaps each panel to `role="region"` + `aria-labelledby` pointing at its own sr-only `<h2>` id
+once desktop is detected client-side.
+
+**Done 2026-08-29.** Verified in Chrome via the local `vite preview` build: desktop shows both
+panels side-by-side with live quote updates (selecting T1 CLASS → $656 total appears instantly);
+mobile shows the CALCULATOR/QUOTE tab switcher and real click-driven tab switching (Radix binds
+selection to `mousedown`, confirmed a synthetic `.click()` does *not* trigger it — only a real
+pointer click does); compiled CSS inspected directly in `dist/index.html` to confirm the breakpoint
+rule; no console errors or hydration warnings on fresh load. `npx tsc --noEmit` and `npm run build`
+(incl. SSR prerender) both clean.
 
 ## Phase 3 — Structured results (the calculate/format split)
 
