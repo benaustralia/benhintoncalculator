@@ -298,7 +298,52 @@ Pushed to `main` (`3e8b9c1`).
 driving the deployed site to eyeball results) can go to Haiku subagents per the browser-automation
 delegation rule.*
 
-- [ ] `npx lighthouse https://tutorterm-calculator.netlify.app --view` — expect a11y high-90s/100.
+- [x] `npx lighthouse https://tutorterm-calculator.netlify.app` — **100/100/100/100**
+      (performance/accessibility/best-practices/SEO), confirmed on two independent runs.
 - [ ] Playwright smoke test (`@playwright/test` already in devDeps, needs a config): drive the UI
       via accessible names only, assert `#quote-data` JSON for 2–3 known configs, run axe.
 - [ ] Reinstate badges only if generated from the real run (or leave them off).
+
+**Blocker found first, unrelated to a11y: the deploy pipeline itself was broken.** Before Lighthouse
+could mean anything, checked whether the live site actually reflected today's work — it didn't.
+`netlify api listSiteDeploys` showed **every deploy since this session started (16+ attempts across
+Phases 5, 6, and the discoverability additions) had failed** with `Host key verification failed`
+at the "preparing repo" stage. The live site was still serving commit `81ec0c7` from **15 May
+2026** — the pre-Phase-1 baseline the whole plan started from. None of Phases 1–6 had ever actually
+gone live; every "pushed to main" note above was accurate about GitHub, not about deployment.
+
+Root cause: `netlify api getSite` showed `build_settings.installation_id: null` and
+`deploy_key_id: null` — an orphaned git link with neither a working GitHub App installation nor an
+SSH deploy key behind it. The repo's own `.github/workflows/netlify-deploy.yml` (POSTs to a Netlify
+build hook on every push to `main`) was firing correctly the whole time — that's why every failed
+deploy showed `"Deploy triggered by hook: GitHub Actions auto-deploy"` — Netlify just couldn't clone
+the repo once triggered.
+
+**Fix** (`netlify-github-deploy-key-link` skill, user-approved before any account-config change):
+1. `netlify api createDeployKey` → new SSH key pair on Netlify's side.
+2. `gh api repos/.../keys` → added as a read-only deploy key on the GitHub repo.
+3. `netlify api updateSite` → relinked the site's `repo` config to use `deploy_key_id`, preserving
+   the existing `cmd: "bun run build"` / `dir: "dist"`.
+4. Verified with `netlify api createSiteBuild` (manual trigger) → `ready`, `commit_ref` matched
+   `HEAD` — clone access confirmed fixed.
+5. The skill's own guidance flagged that deploy-key linking doesn't auto-register a webhook — added
+   one, then noticed the repo already had a *working* trigger (`netlify-deploy.yml`) that would now
+   fire the build hook AND the new webhook would fire a second build on every push. Removed the
+   webhook to avoid double-building; the pre-existing build-hook workflow was the correct trigger to
+   keep.
+6. End-to-end verification: `git commit --allow-empty` + `git push` → deploy reached `ready` with
+   `commit_ref` matching the pushed SHA within ~15s, no manual intervention. Live site's footer now
+   shows the current commit hash.
+
+**Then the actual a11y finding:** first Lighthouse pass (against the now-current build) came back
+98/96/100/100 — Accessibility short of 100 on a genuine `color-contrast` failure: the Phase 4 field
+labels (`text-zinc-500` on black) measured 4.35:1, just under WCAG AA's 4.5:1 for normal-size text.
+Fixed by bumping to `text-zinc-400` (already used elsewhere in the app for the copy icon and input
+placeholders — no new color introduced), which measures ~8.2:1. Same category of fix as Phase 1's
+`text-red-500` → `text-red-400`, not a new design decision. Performance's 98 (FCP/LCP/Speed Index
+just under 1.0) turned out to be ordinary run-to-run timing noise, not a real regression — it scored
+100 on both post-fix runs with no code change to performance-affecting code.
+
+**Done 2026-08-30.** `tsc`/eslint/build all clean (the fix touched only two `lbl` string constants).
+Pushed to `main` (`ca6a1b3`), deploy verified `ready` and live. Two independent Lighthouse runs
+post-fix both scored 100/100/100/100.
