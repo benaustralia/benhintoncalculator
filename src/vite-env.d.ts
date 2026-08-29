@@ -4,6 +4,7 @@ import type { calculate, QuoteData } from "@/lib/calculate";
 import type { TapeLine } from "@/lib/formatTape";
 import type { YearData } from "@/data/terms";
 import type { Slot, LEVELS, DURATIONS } from "@/lib/termConstants";
+import type { getHelp } from "@/lib/help";
 
 declare const __COMMIT_HASH__: string;
 
@@ -20,6 +21,7 @@ declare global {
       levels: typeof LEVELS;
       durations: typeof DURATIONS;
       version: string;
+      help: typeof getHelp;
     };
   }
 }

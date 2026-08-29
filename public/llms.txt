@@ -1,0 +1,71 @@
+# TutorTerm Calculator
+
+> Fee calculator for a Melbourne tutoring business (Grade Prep through VCE, terms/holidays
+> for 2026–2030). Built to be usable by an AI agent without clicking through the UI: the
+> same quote the page renders is available as structured data, via the URL, and via a JS
+> function — pick whichever fits how you're driving the page.
+
+## Query-string state
+
+The full calculator state round-trips through the URL query string (read once on load,
+written back — debounced — on every change). A URL is a complete, self-describing
+snapshot; navigating to one renders the real, calculated quote with no clicks required.
+
+    ?year=2026&lang=en&client=loyalty&level=vce&credit=50&debit=20
+     &slots=term_1,gr_hols_2
+     &term_1=monday.1h.2026-01-28.2026-04-02
+     &gr_hols_2_dates=0627,0703
+
+- `year`, `lang` (`en`|`zh`), `client` (`loyalty`|`new`), `level` (`prep_6`|`grade_7_10`|`vce`|`adult`) — scalars.
+- `credit`, `debit` — free-text dollar amounts, omitted from the URL when empty.
+- `slots` — comma-joined list of active slot keys (see `window.tutorterm.slots` below).
+- `<slotKey>=<day>.<duration>.<start>.<end>` — one param per active slot: lowercase day name
+  (`monday`…`sunday`), a duration key, ISO start/end dates. Present but not user-editable
+  for holiday slots (their date range is fixed).
+- `<slotKey>_dates=<MMdd>,<MMdd>,…` — per-slot holiday date selections, month+day only
+  (public holidays are excluded automatically, same as the UI).
+- Malformed or unrecognised values fall back to their default silently, field by field — a
+  hand-edited or fuzzed URL never crashes the page or drops an otherwise-valid sibling field.
+
+## Structured quote mirror
+
+Every render mirrors the current quote as JSON in the page itself, present even when no
+slots are active:
+
+    JSON.parse(document.getElementById('quote-data').textContent)
+
+Shape: `{ inputs: {year, level, client, lang, rate}, slots: [...], totals: {subtotal,
+discount, discountKind, credit, debit, payable} }`.
+
+## window.tutorterm — JS API
+
+Available as soon as the page's script runs, before React hydrates. Call
+`window.tutorterm.help()` (from the console, or any tool executing JS in the page) for a
+machine-readable description of the full surface plus a worked example. Summary:
+
+- `calculate(params) -> QuoteData` — the pure function everything above is built on.
+- `formatTape(quote) -> TapeLine[]` — the exact printed tape lines (what "Copy quote"
+  copies), in whichever language `quote.inputs.lang` was.
+- `yearData[year] -> { terms, holidays, publicHolidays }` — real date ranges; no need to
+  hand-type or remember term/holiday dates.
+- `getCurrentYear()`, `getAvailableYears()`.
+- `slots -> [{key, termKey, isHols, isGR, n}, …]` — every valid slot key.
+- `levels -> { [levelKey]: { rates: [loyaltyRate, newClientRate] } }`.
+- `durations -> { [durationKey]: hours }`.
+- `version` — build hash (matches the footer on the page).
+
+Example — a T1 CLASS quote with no hand-typed literals except the day/level choice:
+
+    const t = window.tutorterm;
+    const year = t.getCurrentYear();
+    const data = t.yearData[year];
+    const slot = t.slots.find(s => s.key === "term_1");
+    const quote = t.calculate({
+      active: [slot.key],
+      configs: { [slot.key]: {
+        day: "Monday", dur: "1h", start: data.terms.term_1.start, end: data.terms.term_1.end,
+        groupReading: false, selectedDates: [],
+      } },
+      level: "vce", loyal: true, year, data, globalCredit: "", globalDebit: "", lang: "en",
+    });
+    t.formatTape(quote).map(l => l.text).join("\n");

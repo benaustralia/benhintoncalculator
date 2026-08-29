@@ -8,6 +8,7 @@ import { TRANSLATIONS } from '@/i18n/translations'
 import { getBuildHash } from '@/lib/version'
 import { YEAR_DATA, getCurrentYear, getAvailableYears } from '@/data/terms'
 import { SLOTS, LEVELS, DURATIONS } from '@/lib/termConstants'
+import { getHelp } from '@/lib/help'
 
 window.tutorterm = {
   calculate,
@@ -23,6 +24,9 @@ window.tutorterm = {
   levels: LEVELS,
   durations: DURATIONS,
   version: getBuildHash(),
+  // Self-description for a caller already executing JS in the page — see /llms.txt for the
+  // same information aimed at a reader without JS (a crawler, or an agent before it loads the page).
+  help: getHelp,
 }
 
 createRoot(document.getElementById('root')!).render(

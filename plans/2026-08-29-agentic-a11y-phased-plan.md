@@ -273,6 +273,25 @@ slot key, `Object.keys(levels)` for a level key) — zero hand-typed dates or gu
 back `TERM 2 - 2026, FRIDAYS, 24 APR — 26 JUN, 10 SESSIONS / 2 HR, PAYABLE $1,910` with the `$10`
 debit correctly applied. `tsc`/eslint/build all clean. Pushed to `main` (`70f5266`).
 
+**Discoverability, added post-review:** everything above is reachable but wasn't announced — an
+agent has to already know to check `window.tutorterm` or `#quote-data`; nothing on the page says
+these exist. Added two lightweight, purely-additive announcements, covering discovery before a page
+load and discovery from inside one:
+- `public/llms.txt` — plain-text description (the emerging `llms.txt` convention) of the URL-state
+  encoding, the `#quote-data` mirror, and the full `window.tutorterm` surface with a worked example,
+  served as a static file at the site root.
+- `window.tutorterm.help()` (`src/lib/help.ts`) — the same information as a JSON-serializable object,
+  for a caller already executing JS in the page with no access to `/llms.txt`. Kept as a small
+  dedicated module (same pattern as `version.ts`) rather than inlined in `main.tsx`.
+
+**Done 2026-08-29.** `npx tsc --noEmit`, eslint, and `npm run build` all clean; confirmed `llms.txt`
+copies into `dist/` and Netlify serves it as `text/plain` (checked via `vite preview` + `curl -I`).
+Self-consistency check in Chrome: took `window.tutorterm.help().example` — the exact code string in
+the docs — and ran it with `eval()` against the live page with zero modification; it executed without
+error and produced a correct real tape (`VCE LOYALTY … SUBTOTAL $760 … PAYABLE $760`), so the
+documentation isn't just plausible-looking text, it's demonstrably accurate against the shipped API.
+Pushed to `main`.
+
 ## Phase 7 — Verification & regression lock
 
 *Model: Sonnet, medium effort for writing the Playwright/axe tests; the mechanical runs (Lighthouse,
