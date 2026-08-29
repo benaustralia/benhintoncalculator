@@ -4,6 +4,7 @@ import { getAvailableYears, type YearData } from "@/data/terms";
 import { TermCard, type CardConfig } from "@/components/TermCard";
 import { TRANSLATIONS, type Lang } from "@/i18n/translations";
 import { SLOTS, SLOT_ORDER, LEVELS, type SlotKey, type LevelKey, type Slot } from "@/lib/termConstants";
+import { getBuildHash } from "@/lib/version";
 
 const S = { on: "bg-white text-black", off: "border border-zinc-800 text-zinc-300" };
 
@@ -102,9 +103,7 @@ export function InputPanel({ lang, setLang, year, setYear, loyal, setLoyal, leve
           <TermCard key={k} idPrefix={k} label={tr.cardLabel(String(slot.n), slot.isHols, slot.isGR, year)} config={c} minDate={range.start} maxDate={range.end} onChange={u => updateConfig(k, u)} isGR={slot.isGR} isHols={slot.isHols} allHolDates={allHolDates} publicHolidays={phDates} lang={lang} />
         );
       })}
-      <div className="text-[10px] text-zinc-400">
-        {(import.meta.env.VITE_COMMIT_REF || import.meta.env.VITE_GIT_COMMIT_SHA)?.substring(0, 7) || "dev"}
-      </div>
+      <div className="text-[10px] text-zinc-400">{getBuildHash()}</div>
     </form>
   );
 }

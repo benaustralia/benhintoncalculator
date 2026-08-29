@@ -220,9 +220,31 @@ debounce. Pushed to `main` (`d59f44b`).
 
 *Model: Sonnet, low effort (Haiku viable) — pure wiring of the Phase-3 function; nothing to design.*
 
-- [ ] `window.tutorterm = { calculate, version: BUILD_HASH }` exposing the Phase-3 pure function.
+- [x] `window.tutorterm = { calculate, version: BUILD_HASH }` exposing the Phase-3 pure function.
 - [ ] Optional: Netlify Function `/api/quote?year=…` importing the same module (decide when needed —
       the JSON mirror + window API may be enough).
+
+**Implementation:** wired directly in `src/main.tsx` (the client-only entry — `entry-server.tsx` never
+imports it, so SSR never touches `window`), not inside `TermCalculator`, so `window.tutorterm` exists
+immediately when the script runs rather than waiting on a post-hydration effect. `BUILD_HASH` was
+already computed inline in `InputPanel.tsx`'s footer (`VITE_COMMIT_REF` ‖ `VITE_GIT_COMMIT_SHA`,
+truncated to 7 chars); factored that one-liner out to `src/lib/version.ts` (`getBuildHash()`) so the
+footer and `window.tutorterm.version` can't drift — both now read the literal same string. The global
+`Window.tutorterm` type lives in `vite-env.d.ts` next to the existing `__COMMIT_HASH__` ambient decl.
+
+**Netlify Function deferred, not skipped:** `window.tutorterm.calculate` plus the `#quote-data` JSON
+mirror (Phase 3) already cover "can an agent get a structured quote without clicking through the UI"
+for anything that can run a browser or a headless page. A `/api/quote` endpoint only earns its keep
+for a caller with *no* JS runtime (a pure HTTP client) — not asked for, and speculative infra for a
+scenario nobody's hit yet is exactly the kind of thing not to build ahead of need. Revisit if that
+caller shows up.
+
+**Done 2026-08-29.** `npx tsc --noEmit`, eslint, and `npm run build` (incl. SSR prerender) all clean.
+Verified in Chrome on the `vite preview` build: `window.tutorterm` exposes exactly `{calculate,
+version}` (nothing else leaked onto it); calling `calculate()` standalone with a hand-built
+`CalculateParams` (T1 CLASS, Mondays, 1hr, grade 7-10, loyalty) returned the same `$656` / 8 sessions
+as the UI; `window.tutorterm.version` (`4e3c355`) matched the footer's commit hash exactly, confirming
+the single-source-of-truth refactor; no console errors on load. Pushed to `main`.
 
 ## Phase 7 — Verification & regression lock
 
