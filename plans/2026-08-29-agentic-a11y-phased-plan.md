@@ -225,6 +225,11 @@ debounce. Pushed to `main` (`d59f44b`).
       gets a JS-capable caller the structured `QuoteData`; the human-readable tape text (what "Copy
       quote" copies) needed `formatTape` exposed too, so a headless caller (no page render, no click)
       can get the exact printed lines in one round trip.
+- [x] `window.tutorterm.{yearData, getCurrentYear, getAvailableYears, slots, levels, durations}` —
+      added same day, post-review: `calculate` still needed a hand-typed `data: YearData` (term/
+      holiday dates) plus guessed slot/level/duration key strings. These are all already-exported
+      constants in `@/data/terms` and `@/lib/termConstants`; exposing them means the entire input
+      surface of `calculate()` is self-discoverable from a fresh page load, no source access needed.
 - [ ] Optional: Netlify Function `/api/quote?year=…` importing the same module (decide when needed —
       the JSON mirror + window API may be enough).
 
@@ -258,6 +263,15 @@ confirming the single-source-of-truth refactor. Then, on a fresh load with **zer
 exact tape text the "Copy quote" button would copy (`SUBTOTAL $656` / `小计 $656` etc.) — confirming
 a fully headless round trip: load the page, call two functions, get the tape. No console errors on
 load. Pushed to `main` (`30812d2`, `formatTape` addition in `da141e0`).
+
+**Reference-data wiring:** `YEAR_DATA`/`getCurrentYear`/`getAvailableYears` (from `@/data/terms`) and
+`SLOTS`/`LEVELS`/`DURATIONS` (from `@/lib/termConstants`) exposed as-is — no wrapper logic, they're
+already the exact constants `calculate()`'s callers (`TermCalculator`, `InputPanel`) read from.
+Verified in Chrome: built a full `CalculateParams` for a T2 slot using only `window.tutorterm`'s own
+data (`getCurrentYear()` → `yearData[year].terms.term_2` for the date range, `slots.find(...)` for the
+slot key, `Object.keys(levels)` for a level key) — zero hand-typed dates or guessed literals — and got
+back `TERM 2 - 2026, FRIDAYS, 24 APR — 26 JUN, 10 SESSIONS / 2 HR, PAYABLE $1,910` with the `$10`
+debit correctly applied. `tsc`/eslint/build all clean.
 
 ## Phase 7 — Verification & regression lock
 
