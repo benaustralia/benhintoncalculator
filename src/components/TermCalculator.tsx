@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { parseISO, eachDayOfInterval, getDay, format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { YEAR_DATA, getCurrentYear } from "@/data/terms";
@@ -21,6 +21,11 @@ export function TermCalculator() {
 
   const data = YEAR_DATA[year];
   const tr = TRANSLATIONS[lang];
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    document.title = tr.pageTitle;
+  }, [lang, tr.pageTitle]);
 
   const getRange = (slot: Slot) => {
     if (slot.isHols) {
@@ -64,13 +69,19 @@ export function TermCalculator() {
 
   const tabCls = "flex-1 rounded-none py-3 text-sm data-[state=active]:bg-zinc-900 data-[state=active]:text-white text-zinc-300";
   const panelProps = { lang, setLang, year, setYear, loyal, setLoyal, level, setLevel, active, toggle, globalCredit, setGlobalCredit, globalDebit, setGlobalDebit, configs, updateConfig, data };
-  const quote = <div className="flex items-center justify-center h-full"><Tape tape={calc.tape} total={calc.total} /></div>;
+  const quote = <div className="flex items-center justify-center h-full"><Tape tape={calc.tape} total={calc.total} lang={lang} /></div>;
 
   return (
     <main data-prerendered="" className="h-[100dvh] bg-black text-white">
       <div className="hidden md:flex h-full max-w-5xl mx-auto">
-        <div className="flex-1 p-12 overflow-y-auto"><InputPanel {...panelProps} /></div>
-        <div className="flex-1 p-12 overflow-y-auto">{quote}</div>
+        <div className="flex-1 p-12 overflow-y-auto">
+          <h2 className="sr-only">{tr.tabCalculator}</h2>
+          <InputPanel {...panelProps} />
+        </div>
+        <div className="flex-1 p-12 overflow-y-auto">
+          <h2 className="sr-only">{tr.tabQuote}</h2>
+          {quote}
+        </div>
       </div>
       <div className="md:hidden h-full flex flex-col">
         <Tabs defaultValue="calculator" className="flex flex-col h-full">

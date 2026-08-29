@@ -37,6 +37,9 @@ export type Translations = {
   daysJoined: (days: string[]) => string;
   formatChipDate: (d: string) => string;
   formatDateRange: (a: string, b: string) => string;
+  copyQuote: string;
+  copied: string;
+  pageTitle: string;
 };
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -91,6 +94,9 @@ export const EN: Translations = {
   formatChipDate: (d) => format(parseISO(d), "EEE d MMM").toUpperCase(),
   formatDateRange: (a, b) =>
     `${format(parseISO(a), "d MMM").toUpperCase()} — ${format(parseISO(b), "d MMM").toUpperCase()}`,
+  copyQuote: "Copy quote",
+  copied: "Copied",
+  pageTitle: "TutorTerm Calculator",
 };
 
 export const ZH: Translations = {
@@ -141,6 +147,9 @@ export const ZH: Translations = {
   },
   formatDateRange: (a, b) =>
     `${format(parseISO(a), "M月d日")} — ${format(parseISO(b), "M月d日")}`,
+  copyQuote: "复制报价",
+  copied: "已复制",
+  pageTitle: "学费计算器",
 };
 
 export const TRANSLATIONS: Record<Lang, Translations> = { en: EN, zh: ZH };

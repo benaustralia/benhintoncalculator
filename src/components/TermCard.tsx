@@ -47,9 +47,11 @@ export function TermCard({ label, config, minDate, maxDate, onChange, isGR, isHo
               return (
                 <button
                   key={d}
+                  type="button"
                   onClick={() => !isPH && toggleDate(d)}
                   disabled={isPH}
-                  className={`px-2 py-1 text-xs font-medium ${isPH ? "border border-zinc-800 text-zinc-600 cursor-not-allowed" : isSelected ? "bg-white text-black" : "border border-zinc-800 text-zinc-300"}`}
+                  aria-pressed={isSelected}
+                  className={`px-2 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 ${isPH ? "border border-zinc-800 text-zinc-600 cursor-not-allowed" : isSelected ? "bg-white text-black" : "border border-zinc-800 text-zinc-300"}`}
                 >
                   {tr.formatChipDate(d)}
                 </button>

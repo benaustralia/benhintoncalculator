@@ -39,8 +39,9 @@ select {
   cursor: pointer;
 }
 
-select:focus {
-  outline: none;
+select:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
   border-color: white;
 }
 
