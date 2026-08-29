@@ -271,7 +271,7 @@ Verified in Chrome: built a full `CalculateParams` for a T2 slot using only `win
 data (`getCurrentYear()` → `yearData[year].terms.term_2` for the date range, `slots.find(...)` for the
 slot key, `Object.keys(levels)` for a level key) — zero hand-typed dates or guessed literals — and got
 back `TERM 2 - 2026, FRIDAYS, 24 APR — 26 JUN, 10 SESSIONS / 2 HR, PAYABLE $1,910` with the `$10`
-debit correctly applied. `tsc`/eslint/build all clean.
+debit correctly applied. `tsc`/eslint/build all clean. Pushed to `main` (`70f5266`).
 
 ## Phase 7 — Verification & regression lock
 
