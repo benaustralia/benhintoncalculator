@@ -179,11 +179,42 @@ still calculates ($656 for T1 CLASS Mondays 1hr).
 *Model: Sonnet, high effort — the encoding design and malformed-input tolerance need real thought;
 the implementation itself is ordinary React state plumbing.*
 
-- [ ] Scheme: scalars as plain params (`?year=2026&lang=zh&client=loyalty&level=vce`), active slots
+- [x] Scheme: scalars as plain params (`?year=2026&lang=zh&client=loyalty&level=vce`), active slots
       as `slots=term_1,gr_2`, per-slot config as `term_1=monday.1h.2026-01-28.2026-04-02`, holiday
       selections as `hols_1_dates=0403,0407,…` (MMDD within the known range).
-- [ ] Read once on mount → seed state; write with `history.replaceState` on change (debounced).
-- [ ] Ignore malformed params silently (fall back to defaults) — agents will fuzz this.
+- [x] Read once on mount → seed state; write with `history.replaceState` on change (debounced).
+- [x] Ignore malformed params silently (fall back to defaults) — agents will fuzz this.
+
+**Implementation (`src/lib/urlState.ts`):** `decodeUrlState`/`encodeUrlState`, field-by-field
+fallback rather than all-or-nothing per slot — an invalid `day` token doesn't drop a valid `dur` in
+the same param. Every active slot always gets a complete, safe `CardConfig` synthesized from the
+same defaults `toggle()` uses (Monday/1h non-GR, Sunday/1.5h GR, Sundays pre-seeded for GR-hols),
+then overridden field-by-field by whatever in the URL validates. Start/end must be well-formed ISO,
+`start <= end`, and both inside the slot's natural date range, or the pair is rejected together (no
+partial start-without-end). Holiday `_dates` tokens are matched by `MMdd` against that slot's actual
+computed date list (safe — no slot's range spans a full year, so month+day never repeats), then
+filtered against `publicHolidays` the same way the UI disables PH chips — so a malformed or
+PH-disabled token is silently dropped rather than smuggled into a slot the UI itself won't allow.
+Unknown slot keys in `slots=` are dropped entirely (never reach `calculate`).
+
+`TermCalculator`: one mount-only effect calls `decodeUrlState(window.location.search)` and seeds all
+eight pieces of state (SSR always renders the plain defaults, so there's no hydration mismatch to
+reconcile — this only ever pulls state forward, same pattern as `useIsDesktop`); a second effect
+debounces (300ms) `encodeUrlState(...)` back into `history.replaceState`, always writing the full
+scalar state (year/lang/client/level) even at defaults so a URL is a complete, self-describing
+snapshot for an agent — not just a diff from unstated defaults.
+
+**Done 2026-08-29.** `npx tsc --noEmit` and `npm run build` (incl. SSR prerender) both clean; eslint
+on the new/changed files shows only the three pre-existing `TermCalculator.tsx` errors (confirmed
+identical via `git stash`), nothing new. Verified in Chrome on the `vite preview` build: a URL with
+`lang=zh&client=new&level=vce&slots=term_1,gr_hols_2,bogus_slot` plus a `gr_hols_2_dates` list
+containing one malformed token (`9999`) hydrated correctly — `zh-CN` `lang`, VCE rate, `term_1`'s
+day/dur/start/end from its param, `gr_hols_2`'s valid dates kept and the malformed one dropped,
+`bogus_slot` silently ignored (absent from state and from the rewritten URL). A second fuzz pass
+(`year=1999&level=bogus&client=xyz` + swapped/out-of-range `term_1` dates) fell back to defaults on
+every field with no console errors. A real click on T1 CLASS produced the $656 quote from earlier
+phases and the URL updated to `slots=term_1&term_1=monday.1h.2026-01-28.2026-04-02` after the
+debounce. Not yet pushed to `main`.
 
 ## Phase 6 — Programmatic access
 

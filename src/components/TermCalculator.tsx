@@ -9,6 +9,7 @@ import { TRANSLATIONS, type Lang } from "@/i18n/translations";
 import { SLOTS, SLOT_ORDER, DAY_IDX, type SlotKey, type LevelKey, type Slot } from "@/lib/termConstants";
 import { calculate } from "@/lib/calculate";
 import { formatTape } from "@/lib/formatTape";
+import { encodeUrlState, decodeUrlState } from "@/lib/urlState";
 
 const DESKTOP_QUERY = "(min-width: 768px)";
 
@@ -45,6 +46,31 @@ export function TermCalculator() {
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
     document.title = tr.pageTitle;
   }, [lang, tr.pageTitle]);
+
+  // Seed from the URL once, post-hydration (SSR always renders the plain defaults
+  // above, so there's nothing to reconcile — this only ever pulls state forward).
+  useEffect(() => {
+    const decoded = decodeUrlState(window.location.search);
+    setYear(decoded.year);
+    setLang(decoded.lang);
+    setLoyal(decoded.loyal);
+    setLevel(decoded.level);
+    setGlobalCredit(decoded.globalCredit);
+    setGlobalDebit(decoded.globalDebit);
+    setActive(decoded.active);
+    setConfigs(decoded.configs);
+  }, []);
+
+  // Mirror state back to the URL (debounced so typing in credit/debit or dragging a
+  // date picker doesn't spam history.replaceState).
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const qs = encodeUrlState({ year, lang, loyal, level, globalCredit, globalDebit, active, configs });
+      const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+      window.history.replaceState(null, "", url);
+    }, 300);
+    return () => window.clearTimeout(id);
+  }, [year, lang, loyal, level, globalCredit, globalDebit, active, configs]);
 
   const getRange = (slot: Slot) => {
     if (slot.isHols) {
