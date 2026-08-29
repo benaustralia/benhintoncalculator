@@ -109,16 +109,48 @@ rule; no console errors or hydration warnings on fresh load. `npx tsc --noEmit` 
 *Model: Opus, high effort — the keystone refactor. Output text must stay byte-identical while the
 internals are re-plumbed; the QuoteData shape designed here is the contract Phases 5–7 build on.*
 
-- [ ] Split `buildTape.ts`:
-      - `calculate(params) → QuoteData` — pure, no `tr`, machine values: per-slot
-        `{slot, kind, day, durationMin, start, end, sessions, dates?, rate, subtotal}` + totals
-        `{subtotal, discount, discountKind, credit, debit, payable}` + inputs echo
-        `{year, level, client, lang}`.
+- [x] Split `buildTape.ts` into `src/lib/calculate.ts` + `src/lib/formatTape.ts` (`buildTape.ts`
+      deleted):
+      - `calculate(params) → QuoteData` — pure, no `tr` reachable from the module. Per-slot
+        `{slot, kind, term, day, durationKey, durationMin, start, end, sessions, dates,
+        excludedHolidays, rate, subtotal, subtotalExact, groupReading}` + totals
+        `{subtotal, discount, discountKind, credit, debit, payable}` + `inputs`
+        `{year, level, client, lang, rate}`.
       - `formatTape(quote, tr) → TapeLine[]` — derives today's exact text from `QuoteData`.
-- [ ] `Tape.tsx`: render rows as `<div data-field="…" data-value="…">` preserving the mono look
-      (`<pre>` → styled div with `whitespace-pre-wrap font-mono`), container `id="quote"`.
-- [ ] Mirror `QuoteData` into `<script type="application/json" id="quote-data">`.
-- [ ] Snapshot-check: rendered text identical to current output for a few known configs.
+        `TapeLine` moved here (was in `Tape.tsx`) and gained `field`/`value`.
+- [x] `Tape.tsx`: rows are `<div data-field="…" data-value="…">` inside `id="quote"`
+      (`<pre>` → div with `whitespace-pre-wrap font-mono`, same classes so the mono look is
+      unchanged; the one blank tape line renders a literal space so its line box keeps height).
+- [x] Mirror `QuoteData` into `<script type="application/json" id="quote-data">` (via
+      `dangerouslySetInnerHTML` — React escapes plain script children into invalid JSON — with
+      every less-than sign rewritten to its JSON unicode escape so no closing script tag can
+      appear in the payload).
+- [x] Snapshot-check: **1695 configs, 0 mismatches**. A throwaway harness ran the pre-refactor
+      `buildTape` and `formatTape(calculate(…))` side by side over years × langs × levels ×
+      loyalty × 13 active-slot sets × 4 day/duration pairs, plus credit/debit variants (incl.
+      malformed `"abc"`), the `EXCLUDES` public-holiday path, narrowed date windows, zero-session
+      windows, empty holiday-chip selections and the dormant per-term `groupReading` flag —
+      comparing every line's `text` + `warn` and the total.
+
+**Two deliberate behaviour deltas** (both improvements, neither visible in the tape text):
+- The `aria-live` container now stays mounted when the quote is empty. Previously `Tape` returned
+  `null`, so the live region was inserted at the same moment as its first content — which screen
+  readers do not announce.
+- `#quote-data` is always emitted, including the empty state, so an agent can read the current
+  inputs before anything is selected.
+
+**Rounding, now explicit in the contract:** the app rounds once, on the accumulated exact cost, so
+a sum of per-slot `subtotal`s can differ from `totals.subtotal` by a dollar (45-minute slots at
+odd rates). That was already true; `subtotalExact` is exposed so Phase 6 consumers can reconcile
+rather than rediscover it. A weekly term slot's own `subtotal` excludes its `groupReading` block —
+the tape prints the two combined, `calculate` keeps them separate.
+
+**Done 2026-08-29.** `npx tsc --noEmit` clean; `npm run build` clean (SSR prerender emits the
+empty-state `#quote-data`). Verified in Chrome on the `vite preview` build: selecting T2 CLASS
+gives `SUBTOTAL $738` with `data-field`/`data-value` on every row (`slot-excludes` →
+`2026-06-08`), the spacer row measures the same 26px as every other line, and a fresh load logs
+nothing at all — no hydration warnings. eslint on the new files is clean (the pre-existing errors
+in `TermCalculator.tsx` remain, untouched).
 
 ## Phase 4 — Visible labels + form semantics
 

@@ -7,7 +7,8 @@ import { Tape } from "@/components/Tape";
 import { InputPanel } from "@/components/InputPanel";
 import { TRANSLATIONS, type Lang } from "@/i18n/translations";
 import { SLOTS, SLOT_ORDER, DAY_IDX, type SlotKey, type LevelKey, type Slot } from "@/lib/termConstants";
-import { buildTape } from "@/lib/buildTape";
+import { calculate } from "@/lib/calculate";
+import { formatTape } from "@/lib/formatTape";
 
 const DESKTOP_QUERY = "(min-width: 768px)";
 
@@ -77,17 +78,18 @@ export function TermCalculator() {
     }
   };
 
-  const calc = useMemo(() =>
-    buildTape({ active, configs, level, loyal, year, data, globalCredit, globalDebit, tr }),
+  const quote = useMemo(() =>
+    calculate({ active, configs, level, loyal, year, data, globalCredit, globalDebit, lang }),
     [active, configs, level, loyal, year, data, globalCredit, globalDebit, lang]
   );
+  const tape = useMemo(() => formatTape(quote, tr), [quote, tr]);
 
   const updateConfig = (k: SlotKey, u: Partial<CardConfig>) =>
     setConfigs({ ...configs, [k]: { ...configs[k]!, ...u } });
 
   const tabCls = "flex-1 rounded-none py-3 text-sm data-[state=active]:bg-zinc-900 data-[state=active]:text-white text-zinc-300";
   const panelProps = { lang, setLang, year, setYear, loyal, setLoyal, level, setLevel, active, toggle, globalCredit, setGlobalCredit, globalDebit, setGlobalDebit, configs, updateConfig, data };
-  const quote = <div className="flex items-center justify-center h-full"><Tape tape={calc.tape} total={calc.total} lang={lang} /></div>;
+  const quotePanel = <div className="flex items-center justify-center h-full"><Tape quote={quote} tape={tape} lang={lang} /></div>;
 
   // Below md this behaves as a real single-panel-at-a-time tab widget (Radix owns
   // role="tabpanel"/aria-labelledby-to-trigger there). At md+ both panels sit side by
@@ -119,7 +121,7 @@ export function TermCalculator() {
           className="max-md:data-[state=inactive]:hidden flex-1 overflow-y-auto p-6 md:p-12 mt-0"
         >
           <h2 id="quote-heading" className="sr-only">{tr.tabQuote}</h2>
-          {quote}
+          {quotePanel}
         </TabsContent>
       </Tabs>
     </main>
