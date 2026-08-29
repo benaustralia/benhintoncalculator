@@ -257,7 +257,7 @@ confirming the single-source-of-truth refactor. Then, on a fresh load with **zer
 **zero** URL params, chained `calculate()` → `formatTape()` in both `en` and `zh` and got back the
 exact tape text the "Copy quote" button would copy (`SUBTOTAL $656` / `小计 $656` etc.) — confirming
 a fully headless round trip: load the page, call two functions, get the tape. No console errors on
-load. Pushed to `main` (`30812d2`).
+load. Pushed to `main` (`30812d2`, `formatTape` addition in `da141e0`).
 
 ## Phase 7 — Verification & regression lock
 
