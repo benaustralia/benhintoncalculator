@@ -300,9 +300,65 @@ delegation rule.*
 
 - [x] `npx lighthouse https://tutorterm-calculator.netlify.app` — **100/100/100/100**
       (performance/accessibility/best-practices/SEO), confirmed on two independent runs.
-- [ ] Playwright smoke test (`@playwright/test` already in devDeps, needs a config): drive the UI
+- [x] Playwright smoke test (`@playwright/test` already in devDeps, needs a config): drive the UI
       via accessible names only, assert `#quote-data` JSON for 2–3 known configs, run axe.
 - [ ] Reinstate badges only if generated from the real run (or leave them off).
+
+**Playwright + axe implementation:** `playwright.config.ts` (chromium only — this is a smoke/
+regression test, not the cross-browser matrix) with a `webServer` that runs `npm run build && npm run
+preview` before each run, so the suite always exercises current source, never a stale `dist/`.
+`tests/smoke.spec.ts`, 5 tests:
+- Three "known quotes", each driven purely by `getByRole`/`getByLabel` (never a CSS selector) —
+  proof the Phase 1/4 accessible-names work actually resolves elements, not just satisfies an
+  automated audit: T1 CLASS at defaults → `$656`/8 sessions; same slot + VCE level (a `<select>`
+  interaction) → `$760`; same + credit `$50`/debit `$20` (two `<input>` fills) → `$730`. Assertions
+  read `#quote-data` (the Phase 3 mirror) rather than scraping rendered text, so they track the real
+  data contract.
+- Two axe scans (`@axe-core/playwright`, new devDependency) — empty state and with a slot active —
+  both `violations: []`. Independent confirmation of the Lighthouse accessibility 100, from a
+  different engine (axe-core vs. Lighthouse's own ruleset).
+
+All 5 pass: `npx playwright test` → `5 passed (9.3s)`.
+
+**Found along the way: `npx tsc --noEmit`/bare `tsc` had been a complete no-op, project-wide, this
+entire plan.** Root `tsconfig.json` is solution-style (`"files": []` + `"references"` to
+`tsconfig.app.json`/`tsconfig.node.json`) — plain `tsc` without `-b` does not build referenced
+projects; it just sees an empty file list and exits 0 having checked nothing. Proved it by
+deliberately injecting `const x: number = 'not a number'` into a `src/` file and running
+`npx tsc --noEmit`: **exit 0, zero errors reported.** Every "`tsc` clean" note in every phase of this
+plan (including ones I wrote) was reporting a command that never actually ran the checker — and
+`package.json`'s `build` script (`tsc && vite build …`, what Netlify's `bun run build` actually
+executes) had the identical bug, so this was live in production, not just a local artifact.
+
+Fixed by switching to `tsc -b` (build mode, which does traverse references) in `package.json`'s
+`build` script, and adding a third referenced project, `tsconfig.playwright.json` (`lib: ["ES2022",
+"DOM"]`, needed for `document` inside `page.evaluate` callbacks — separate from `tsconfig.node.json`,
+which is deliberately Node-only/no-DOM for `vite.config.ts`), covering `playwright.config.ts` +
+`tests/`.
+
+**Turning the gate on for real immediately surfaced 3 pre-existing errors** that had been silently
+ignored by the no-op command every single phase: unused imports `SLOT_ORDER` (`TermCalculator.tsx`),
+`Input` and `parseISO` (`TermCard.tsx`) — the same three eslint had been flagging and every phase's
+notes had explicitly deferred as "pre-existing, out of scope." Since these now fail the actual
+production build (`tsc -b` exits non-zero → `npm run build` fails → deploy fails), leaving them
+unfixed would have broken the very deploy pipeline just repaired above. Removed all three unused
+imports — pure deletions, no behaviour change. Two other pre-existing eslint errors remain
+(`react-hooks/set-state-in-effect` in `useIsDesktop`, an intentionally-unused `_` in `toggle()`'s
+destructure, plus a `react-refresh/only-export-components` in `button.tsx`) — none are unused-import
+errors `tsc` also catches, so they don't block the build; left as-is, same "not in scope here" call
+every prior phase made.
+
+**Verification hygiene note:** caught myself mid-task using `command | tail -N; echo EXIT:$?` to
+check exit codes — `$?` there reflects `tail`'s exit status, not the piped command's, so a real
+failure could have silently reported `EXIT:0`. Every build/lint/typecheck claim in this phase was
+re-verified by redirecting to a file and checking `$?` directly instead. Earlier phases' equivalent
+claims were still corroborated by visually inspecting the actual success output each time (the
+`✓ built in …ms` / `Pre-rendered … chars` lines), not exit code alone, so this is a methodology fix
+going forward rather than grounds to distrust the earlier phase notes.
+
+**Done 2026-08-30.** `npx tsc -b` (real, from-scratch) and `npm run build` both genuinely clean,
+verified with honest exit-code checks; eslint clean of everything except the 3 documented
+pre-existing, out-of-scope errors; Playwright suite `5 passed`. Not yet pushed.
 
 **Blocker found first, unrelated to a11y: the deploy pipeline itself was broken.** Before Lighthouse
 could mean anything, checked whether the live site actually reflected today's work — it didn't.

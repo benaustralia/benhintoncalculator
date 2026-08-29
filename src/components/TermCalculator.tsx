@@ -6,7 +6,7 @@ import { type CardConfig } from "@/components/TermCard";
 import { Tape } from "@/components/Tape";
 import { InputPanel } from "@/components/InputPanel";
 import { TRANSLATIONS, type Lang } from "@/i18n/translations";
-import { SLOTS, SLOT_ORDER, DAY_IDX, type SlotKey, type LevelKey, type Slot } from "@/lib/termConstants";
+import { SLOTS, DAY_IDX, type SlotKey, type LevelKey, type Slot } from "@/lib/termConstants";
 import { calculate } from "@/lib/calculate";
 import { formatTape } from "@/lib/formatTape";
 import { encodeUrlState, decodeUrlState } from "@/lib/urlState";
