@@ -244,7 +244,7 @@ Verified in Chrome on the `vite preview` build: `window.tutorterm` exposes exact
 version}` (nothing else leaked onto it); calling `calculate()` standalone with a hand-built
 `CalculateParams` (T1 CLASS, Mondays, 1hr, grade 7-10, loyalty) returned the same `$656` / 8 sessions
 as the UI; `window.tutorterm.version` (`4e3c355`) matched the footer's commit hash exactly, confirming
-the single-source-of-truth refactor; no console errors on load. Pushed to `main`.
+the single-source-of-truth refactor; no console errors on load. Pushed to `main` (`30812d2`).
 
 ## Phase 7 — Verification & regression lock
 
