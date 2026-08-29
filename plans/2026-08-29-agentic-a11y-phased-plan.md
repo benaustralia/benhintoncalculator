@@ -221,6 +221,10 @@ debounce. Pushed to `main` (`d59f44b`).
 *Model: Sonnet, low effort (Haiku viable) — pure wiring of the Phase-3 function; nothing to design.*
 
 - [x] `window.tutorterm = { calculate, version: BUILD_HASH }` exposing the Phase-3 pure function.
+- [x] `window.tutorterm.formatTape(quote)` — added same day, post-review: `calculate` alone only
+      gets a JS-capable caller the structured `QuoteData`; the human-readable tape text (what "Copy
+      quote" copies) needed `formatTape` exposed too, so a headless caller (no page render, no click)
+      can get the exact printed lines in one round trip.
 - [ ] Optional: Netlify Function `/api/quote?year=…` importing the same module (decide when needed —
       the JSON mirror + window API may be enough).
 
@@ -239,12 +243,21 @@ for a caller with *no* JS runtime (a pure HTTP client) — not asked for, and sp
 scenario nobody's hit yet is exactly the kind of thing not to build ahead of need. Revisit if that
 caller shows up.
 
+**`formatTape` wiring:** exposed as `quote => formatTape(quote, TRANSLATIONS[quote.inputs.lang])` —
+resolves the `Translations` object from the quote's own `inputs.lang` internally, so a headless
+caller never needs to know `TRANSLATIONS`/`Translations` exist; it just chains `calculate()` then
+`formatTape()` on the result. Type added to `Window.tutorterm` in `vite-env.d.ts` alongside `calculate`.
+
 **Done 2026-08-29.** `npx tsc --noEmit`, eslint, and `npm run build` (incl. SSR prerender) all clean.
 Verified in Chrome on the `vite preview` build: `window.tutorterm` exposes exactly `{calculate,
-version}` (nothing else leaked onto it); calling `calculate()` standalone with a hand-built
-`CalculateParams` (T1 CLASS, Mondays, 1hr, grade 7-10, loyalty) returned the same `$656` / 8 sessions
-as the UI; `window.tutorterm.version` (`4e3c355`) matched the footer's commit hash exactly, confirming
-the single-source-of-truth refactor; no console errors on load. Pushed to `main` (`30812d2`).
+formatTape, version}` (nothing else leaked onto it); calling `calculate()` standalone with a
+hand-built `CalculateParams` (T1 CLASS, Mondays, 1hr, grade 7-10, loyalty) returned the same `$656`
+/ 8 sessions as the UI; `window.tutorterm.version` matched the footer's commit hash exactly,
+confirming the single-source-of-truth refactor. Then, on a fresh load with **zero** clicks and
+**zero** URL params, chained `calculate()` → `formatTape()` in both `en` and `zh` and got back the
+exact tape text the "Copy quote" button would copy (`SUBTOTAL $656` / `小计 $656` etc.) — confirming
+a fully headless round trip: load the page, call two functions, get the tape. No console errors on
+load. Pushed to `main` (`30812d2`).
 
 ## Phase 7 — Verification & regression lock
 
