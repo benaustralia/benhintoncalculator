@@ -214,7 +214,7 @@ day/dur/start/end from its param, `gr_hols_2`'s valid dates kept and the malform
 (`year=1999&level=bogus&client=xyz` + swapped/out-of-range `term_1` dates) fell back to defaults on
 every field with no console errors. A real click on T1 CLASS produced the $656 quote from earlier
 phases and the URL updated to `slots=term_1&term_1=monday.1h.2026-01-28.2026-04-02` after the
-debounce. Not yet pushed to `main`.
+debounce. Pushed to `main` (`d59f44b`).
 
 ## Phase 6 — Programmatic access
 
