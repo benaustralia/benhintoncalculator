@@ -507,4 +507,6 @@ Documented in `public/llms.txt` (new "HTTP API" section) and `window.tutorterm.h
 count as shipped until an agent reading either doc would find it.
 
 **Done 2026-08-30.** `tsc -b`, eslint, and `npm run build` all clean; Playwright suite still
-`6 passed` (unaffected — this is server-side, no client code changed). Not yet pushed.
+`6 passed` (unaffected — this is server-side, no client code changed). Pushed to `main` (`853e9d6`),
+deploy verified `ready`, and confirmed live with plain `curl` — the actual test of the whole feature —
+against the exact `sunday~1.5h~2026-10-05~2026-12-18` scenario: `payable: 1275`.
