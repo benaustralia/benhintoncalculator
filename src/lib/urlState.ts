@@ -8,9 +8,11 @@ import { type Lang } from "@/i18n/translations";
  * Query-string mirror of the calculator's editable state, so an agent (or a bookmark)
  * can reconstruct a quote without clicking through the UI. Scalars are plain params;
  * active slots are a `slots=` list; each active slot's config is one param keyed by its
- * slot key (`day.dur.start.end`, day lowercase); holiday date selections are a sibling
- * `<slot>_dates=` param of comma-joined `MMdd` tokens (unambiguous — every range here
- * spans under a year, so month+day never repeats within one slot's date list).
+ * slot key (`day~dur~start~end`, day lowercase, `~`-delimited because a duration key like
+ * `1.5h` contains a literal `.` — a `.`-delimited version silently mis-splits and drops
+ * the whole override); holiday date selections are a sibling `<slot>_dates=` param of
+ * comma-joined `MMdd` tokens (unambiguous — every range here spans under a year, so
+ * month+day never repeats within one slot's date list).
  *
  * Decoding never throws: every field falls back to its calculator default independently,
  * because a URL built by fuzzing or hand-editing is the expected input, not the exception.
@@ -90,7 +92,7 @@ export function decodeUrlState(search: string): UrlState {
     const config = defaultConfig(slot, range);
 
     const raw = p.get(slot.key);
-    const parts = raw?.split(".") ?? [];
+    const parts = raw?.split("~") ?? [];
     if (parts.length === 4) {
       const [dayRaw, durRaw, startRaw, endRaw] = parts;
       const day = parseDay(dayRaw);
@@ -141,7 +143,7 @@ export function encodeUrlState(s: UrlState): string {
   for (const key of s.active) {
     const c = s.configs[key];
     if (!c) continue;
-    p.set(key, `${c.day.toLowerCase()}.${c.dur}.${c.start}.${c.end}`);
+    p.set(key, `${c.day.toLowerCase()}~${c.dur}~${c.start}~${c.end}`);
     const slot = SLOTS.find(sl => sl.key === key)!;
     if (slot.isHols && c.selectedDates.length) {
       p.set(`${key}_dates`, c.selectedDates.map(d => format(parseISO(d), "MMdd")).join(","));

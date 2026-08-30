@@ -427,3 +427,33 @@ just under 1.0) turned out to be ordinary run-to-run timing noise, not a real re
 **Done 2026-08-30.** `tsc`/eslint/build all clean (the fix touched only two `lbl` string constants).
 Pushed to `main` (`ca6a1b3`), deploy verified `ready` and live. Two independent Lighthouse runs
 post-fix both scored 100/100/100/100.
+
+---
+
+## Post-ship bug: URL-state `.` delimiter couldn't express `1.5h`
+
+Found by Ben using the shipped URL-state feature, not by any automated check. The per-slot config
+param (`term_1=monday.1h.2026-01-28.2026-04-02`) was `.`-delimited and split with `raw.split(".")`,
+expecting exactly 4 parts. The `1.5h` duration key contains a literal `.`, so a slot configured with
+it split into 5 parts instead of 4 (e.g. `sunday.1.5h.2026-10-05.2026-12-18` → `["sunday","1","5h",
+"2026-10-05","2026-12-18"]`), failed the `parts.length === 4` check, and silently fell back to
+defaults — exactly the "malformed input, ignore silently" behaviour the module was designed to have,
+except this input wasn't malformed, it was a valid duration colliding with the delimiter choice. Net
+effect: the 90-minute (`1.5h`) duration was unreachable via URL for any slot.
+
+**Fix:** switched the per-slot delimiter from `.` to `~` (`src/lib/urlState.ts`, both `encodeUrlState`
+and `decodeUrlState`) — `~` can't appear in a day name, a duration key (`45m`/`1h`/`1.5h`/`2h`, now or
+future), or an ISO date, so this is a structural fix rather than a one-off alias for `1.5h`
+specifically (the alternative Ben offered: accept `90m` as an alias). Updated `public/llms.txt`'s
+example and format description to match. `window.tutorterm.help()` wasn't affected — it documents the
+JS API, not the URL scheme.
+
+**Regression test added** (`tests/smoke.spec.ts`, "URL state" describe block): navigates directly to
+`?...&slots=term_4&term_4=sunday~1.5h~2026-10-05~2026-12-18` (prep_6/new client, so rate = $85) and
+asserts `durationKey: "1.5h"`, `sessions: 10` (the real Sunday count in 2026's term_4), `payable:
+1275` — the exact numbers Ben verified by hand. Confirmed the test actually catches the bug: ran it
+against a stashed copy of the pre-fix `urlState.ts` and it failed with `Expected: "1.5h" / Received:
+"1h"`, then passed again with the fix restored.
+
+**Done 2026-08-30.** `tsc -b`, eslint, and `npm run build` all clean; full Playwright suite
+(`6 passed`, the 5 prior tests plus this new one) green.

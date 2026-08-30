@@ -13,15 +13,16 @@ snapshot; navigating to one renders the real, calculated quote with no clicks re
 
     ?year=2026&lang=en&client=loyalty&level=vce&credit=50&debit=20
      &slots=term_1,gr_hols_2
-     &term_1=monday.1h.2026-01-28.2026-04-02
+     &term_1=monday~1h~2026-01-28~2026-04-02
      &gr_hols_2_dates=0627,0703
 
 - `year`, `lang` (`en`|`zh`), `client` (`loyalty`|`new`), `level` (`prep_6`|`grade_7_10`|`vce`|`adult`) — scalars.
 - `credit`, `debit` — free-text dollar amounts, omitted from the URL when empty.
 - `slots` — comma-joined list of active slot keys (see `window.tutorterm.slots` below).
-- `<slotKey>=<day>.<duration>.<start>.<end>` — one param per active slot: lowercase day name
-  (`monday`…`sunday`), a duration key, ISO start/end dates. Present but not user-editable
-  for holiday slots (their date range is fixed).
+- `<slotKey>=<day>~<duration>~<start>~<end>` — one param per active slot: lowercase day name
+  (`monday`…`sunday`), a duration key, ISO start/end dates. `~`-delimited, not `.`-delimited —
+  the `1.5h` duration key contains a literal `.`, which a `.`-delimited format can't express.
+  Present but not user-editable for holiday slots (their date range is fixed).
 - `<slotKey>_dates=<MMdd>,<MMdd>,…` — per-slot holiday date selections, month+day only
   (public holidays are excluded automatically, same as the UI).
 - Malformed or unrecognised values fall back to their default silently, field by field — a

@@ -46,6 +46,24 @@ test.describe("known quotes (driven via accessible names only)", () => {
   });
 });
 
+test.describe("URL state", () => {
+  // Regression test for a real bug: the per-slot config used to be `.`-delimited
+  // (day.dur.start.end), but the "1.5h" duration key contains a literal ".", so it
+  // mis-split into 5 parts instead of 4 and silently fell back to defaults, making the
+  // 90-minute duration unreachable via URL. Fixed by switching to `~` as the delimiter.
+  test("a 1.5h duration slot round-trips through the URL", async ({ page }) => {
+    await page.goto(
+      "/?year=2026&lang=en&client=new&level=prep_6&slots=term_4&term_4=sunday~1.5h~2026-10-05~2026-12-18"
+    );
+
+    const quote = await getQuoteData(page);
+    expect(quote.slots).toHaveLength(1);
+    expect(quote.slots[0].durationKey).toBe("1.5h");
+    expect(quote.slots[0].sessions).toBe(10);
+    expect(quote.totals.payable).toBe(1275);
+  });
+});
+
 test.describe("accessibility (axe)", () => {
   test("empty state has no violations", async ({ page }) => {
     await page.goto("/");
