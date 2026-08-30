@@ -6,6 +6,14 @@ verified against this repo's code the same day. Local HEAD `383eaf8` = `81ec0c7`
 Ship loop: each phase is one commit, pushed to `main` (GitHub workflow pokes the Netlify build hook).
 No visual design changes anywhere in this plan.
 
+**Deploy pipeline was broken for all of Phases 1–6, fixed during Phase 7.** Netlify's git link to
+GitHub was orphaned (no working GitHub App installation, no deploy key) — every deploy from Phase 5
+onward had been failing silently at "preparing repo," and the live site sat on the pre-Phase-1
+baseline (`81ec0c7`) the whole time. Every "pushed to main" note in Phases 1–6 below was accurate
+about GitHub, not about what was actually live. Fixed via a Netlify SSH deploy key + GitHub repo key
+(see Phase 7 for the full writeup); confirmed working with a real push. Site is current as of `main`
+`dd795c0`.
+
 ## Verification notes (review vs. code)
 
 Confirmed: dual DOM (`TermCalculator.tsx:71-84`); unstructured `<pre>` results (`Tape.tsx`); no
