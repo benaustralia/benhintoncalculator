@@ -2,8 +2,9 @@
 
 > Fee calculator for a Melbourne tutoring business (Grade Prep through VCE, terms/holidays
 > for 2026–2030). Built to be usable by an AI agent without clicking through the UI: the
-> same quote the page renders is available as structured data, via the URL, and via a JS
-> function — pick whichever fits how you're driving the page.
+> same quote the page renders is available as structured data, via the URL, via a JS
+> function, and over plain HTTP with no browser or JS runtime at all — pick whichever fits
+> how you're driving the page (or whether there's a page involved at all).
 
 ## Query-string state
 
@@ -27,6 +28,23 @@ snapshot; navigating to one renders the real, calculated quote with no clicks re
   (public holidays are excluded automatically, same as the UI).
 - Malformed or unrecognised values fall back to their default silently, field by field — a
   hand-edited or fuzzed URL never crashes the page or drops an otherwise-valid sibling field.
+
+## HTTP API — no browser or JS runtime required
+
+    GET /api/quote?<same query params as above, minus year/lang/client/level's URL role —
+                    everything from "Query-string state" is accepted verbatim>
+
+A plain HTTP GET, callable from `curl`, a server-side script, or anything else with no
+JavaScript engine at all — the page itself needs a browser to run its own JS; this endpoint
+doesn't. Reuses the exact same parser as the URL state above (same `~`-delimited per-slot
+format, same fuzz-tolerant fallback-to-default behaviour on malformed input, same CORS-open
+response so it's callable cross-origin from browser JS too). Returns:
+
+    { "quote": <the same QuoteData shape as #quote-data below>,
+      "tape": <the same TapeLine[] as window.tutorterm.formatTape()> }
+
+Example: `/api/quote?year=2026&level=prep_6&client=new&slots=term_4&term_4=sunday~1.5h~2026-10-05~2026-12-18`
+→ `"payable": 1275`.
 
 ## Structured quote mirror
 

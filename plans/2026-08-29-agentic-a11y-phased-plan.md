@@ -457,3 +457,54 @@ against a stashed copy of the pre-fix `urlState.ts` and it failed with `Expected
 
 **Done 2026-08-30.** `tsc -b`, eslint, and `npm run build` all clean; full Playwright suite
 (`6 passed`, the 5 prior tests plus this new one) green.
+
+---
+
+## Post-ship enhancement: `/api/quote` — no browser or JS runtime required
+
+Prompted by a direct question, not a bug: every access path built so far (URL state, `#quote-data`,
+`window.tutorterm`) still requires a JS-executing client — even the "headless" ones (Playwright,
+a driven Chrome tab) are still paying for a full browser process, page load, and hydration just to
+get a number back. A pure HTTP client (`curl`, a server-side script) had no way in at all. This is
+exactly the scenario Phase 6 flagged and deliberately deferred ("a `/api/quote` endpoint only earns
+its keep for a caller with no JS runtime... not asked for"); that caller showed up.
+
+**Implementation** (`netlify/functions/quote.mts`, Netlify Functions v2 / Web-standard
+`Request`→`Response`): reuses `decodeUrlState` directly, so `/api/quote` takes the **exact same
+query-string encoding** as the page's own URL state — same `~`-delimited per-slot format, same
+field-by-field fuzz-tolerant fallback. No second encoding scheme to design or maintain. Calls the
+same `calculate()` + `formatTape()` Phase 3 built, returns `{ quote, tape }` as JSON with
+`Access-Control-Allow-Origin: *` (public, read-only, no auth — same trust level as the page itself).
+
+**The real risk was alias resolution, not logic.** The shared lib files (`calculate.ts`,
+`formatTape.ts`, `urlState.ts`) all use the `@/` path alias internally, which Vite resolves for the
+app but which Netlify's function bundler (esbuild-based) was an open question for. A plain Node
+invocation of the handler (`node --experimental-strip-types`) is the *wrong* tool for testing this —
+Node's native ESM resolver has zero concept of bundler aliases and fails regardless of whether the
+real deploy would work. The faithful test is `netlify dev`, which runs the actual same bundler
+production uses: after setting `build_settings.functions_dir` on the site (via `netlify api
+updateSite`, additive — preserved the existing `cmd`/`dir`/`deploy_key_id`), `netlify dev` logged
+`⬥ Loaded function quote` and resolved the aliases correctly with zero changes needed to the shared
+files' import style.
+
+**Real type-checking, again.** Added `tsconfig.functions.json` as a fourth project reference (same
+pattern as `tsconfig.playwright.json`). Getting it to cleanly check the transitively-imported shared
+files (which are *already* checked correctly under `tsconfig.app.json`) took two rounds: missing the
+`@/*` path mapping caused cascading `Cannot find module` errors; missing `jsx` caused a `TermCard.tsx`
+parse failure that degraded `CardConfig` to `any`, which cascaded into unrelated-looking "implicit
+any" errors three call sites away. Both traced back to one thing: `tsconfig.functions.json` needs to
+be close enough to `tsconfig.app.json`'s shape for files shared between the two projects to
+type-check identically in both.
+
+**Verified via `netlify dev`** against the exact reported bug scenario: `/api/quote?year=2026&level=
+prep_6&client=new&slots=term_4&term_4=sunday~1.5h~2026-10-05~2026-12-18` → `payable: 1275`, matching
+Ben's hand-verified arithmetic exactly. Also confirmed fuzz-tolerance is inherited for free —
+`?year=garbage&level=bogus&slots=term_1&term_1=funday.99h.bad.bad` and a bare `/api/quote` with no
+params at all both returned clean, valid default/empty quotes, no errors.
+
+Documented in `public/llms.txt` (new "HTTP API" section) and `window.tutorterm.help()`'s description
+(one-line cross-reference) — the whole point of building this was discoverability, so it doesn't
+count as shipped until an agent reading either doc would find it.
+
+**Done 2026-08-30.** `tsc -b`, eslint, and `npm run build` all clean; Playwright suite still
+`6 passed` (unaffected — this is server-side, no client code changed). Not yet pushed.

@@ -7,7 +7,9 @@ export function getHelp() {
   return {
     description:
       "Programmatic access to the same pure quote-calculation pipeline the UI renders from. " +
-      "See /llms.txt for the URL query-string encoding and the #quote-data JSON mirror.",
+      "See /llms.txt for the URL query-string encoding and the #quote-data JSON mirror. " +
+      "No JS runtime available at all? GET /api/quote?<same query params> returns " +
+      "{quote, tape} over plain HTTP — no browser needed.",
     example: [
       "const t = window.tutorterm;",
       "const year = t.getCurrentYear();",
