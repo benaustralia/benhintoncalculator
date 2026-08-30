@@ -310,7 +310,7 @@ delegation rule.*
       (performance/accessibility/best-practices/SEO), confirmed on two independent runs.
 - [x] Playwright smoke test (`@playwright/test` already in devDeps, needs a config): drive the UI
       via accessible names only, assert `#quote-data` JSON for 2–3 known configs, run axe.
-- [ ] Reinstate badges only if generated from the real run (or leave them off).
+- [x] Reinstate badges only if generated from the real run (or leave them off).
 
 **Playwright + axe implementation:** `playwright.config.ts` (chromium only — this is a smoke/
 regression test, not the cross-browser matrix) with a `webServer` that runs `npm run build && npm run
@@ -366,7 +366,23 @@ going forward rather than grounds to distrust the earlier phase notes.
 
 **Done 2026-08-30.** `npx tsc -b` (real, from-scratch) and `npm run build` both genuinely clean,
 verified with honest exit-code checks; eslint clean of everything except the 3 documented
-pre-existing, out-of-scope errors; Playwright suite `5 passed`. Not yet pushed.
+pre-existing, out-of-scope errors; Playwright suite `5 passed`. Pushed to `main` (`dd795c0`).
+
+**Badges reinstated, both original complaints fixed.** Original Phase 1 removal cited two problems:
+unverified/hardcoded "100" values, and shields.io `<img>` tags being the page's only third-party
+requests. Recovered the exact original markup from the Phase 1 removal commit (`07eed07`), fetched
+the four shields.io SVGs once — using today's real, twice-confirmed 100/100/100/100 — and saved them
+as static files in `public/badges/` instead of pointing at the live shields.io URLs. Fixes both
+complaints at once: the values are genuinely verified (not asserted), and the page now makes zero
+third-party requests for them (confirmed via network-request inspection: all four load from
+`/badges/*.svg`, same-origin). Added a `title` attribute on the badge row noting the verification
+date, so anyone reading the markup later knows these are a point-in-time snapshot, not a live claim —
+they still need manual regeneration if scores are ever rechecked and differ; no CI automation was
+built for this (out of scope for what was asked). `tsc -b`/eslint/build/Playwright suite all still
+clean with the badges in place, including the axe scan on the empty state (badges render
+unconditionally, not gated on an active slot).
+
+**Done 2026-08-30.** Pushed to `main`.
 
 **Blocker found first, unrelated to a11y: the deploy pipeline itself was broken.** Before Lighthouse
 could mean anything, checked whether the live site actually reflected today's work — it didn't.

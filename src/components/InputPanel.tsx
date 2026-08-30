@@ -103,6 +103,15 @@ export function InputPanel({ lang, setLang, year, setYear, loyal, setLoyal, leve
           <TermCard key={k} idPrefix={k} label={tr.cardLabel(String(slot.n), slot.isHols, slot.isGR, year)} config={c} minDate={range.start} maxDate={range.end} onChange={u => updateConfig(k, u)} isGR={slot.isGR} isHols={slot.isHols} allHolDates={allHolDates} publicHolidays={phDates} lang={lang} />
         );
       })}
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2"
+        title="Verified via a real Lighthouse run, 30 Aug 2026 — self-hosted, not a live shields.io request"
+      >
+        <img src="/badges/performance.svg" alt="Performance: 100" width="110" height="20" />
+        <img src="/badges/accessibility.svg" alt="Accessibility: 100" width="106" height="20" />
+        <img src="/badges/best-practices.svg" alt="Best Practices: 100" width="118" height="20" />
+        <img src="/badges/seo.svg" alt="SEO: 100" width="64" height="20" />
+      </div>
       <div className="text-[10px] text-zinc-400">{getBuildHash()}</div>
     </form>
   );
